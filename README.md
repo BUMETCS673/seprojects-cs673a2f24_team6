@@ -1,2 +1,3 @@
-# GroupProjectTemplate
-Please make sure to modify this readme file as well as the "about" property of the project!
+CS673A2F24_Team6
+Group Members: Chengqin Li, Yunrui Huang, Hangqi Wu, Haoran Zheng, Jiankun Dong, Yuhan Pan. 
+
