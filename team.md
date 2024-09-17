@@ -8,3 +8,9 @@ Hello! I'm Hangqi Wu,a student come from China.I completed my undergraduate stud
 Hello, I'm Haoran Zheng majored in Computer Science, Data Analytics Concentration. I was in Big Data and Data Technology major during undergraduate,  and the tech stacks I'm familiar with are Python, JavaScript+CSS+HTML, R and SQL. In daily life, I like playing badminton or go swimming.  
 I'm always willing to learn new skills and technologies, and I'm glad to participate in teamworks or debates.  
 Hope we can work together well and achieve a superior project.  
+
+## yunrui Huang
+
+Hi, I am Yunrui Huang. Major in Computer Science in both undergrad and master. The main computer language I use is JavaScript. I also familiar with the Java and Python.
+
+Right now, I work on my self project, which using ExpressJs, Esp32, MySQL and Docker to setup a smart home system.
