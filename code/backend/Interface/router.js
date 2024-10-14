@@ -10,4 +10,7 @@ router.use('/database',database);
 const file = require('./router/file_sample');
 router.use('/file',file);
 
+const user = require('./router/user_account');
+router.use('/api',user);
+
 module.exports=router;

@@ -1,6 +1,19 @@
-# Sample Interface
+# Backend Interface
 
 Include A MYSQL database and a Express JS web API interface 
+
+## Quick Setup
+
+1. open a terminal
+2. ``cd`` (For Linux and Windows) to the file of ``<youProjectLocation>\seprojects-cs673a2f24_team6\code\backend``
+3. Make sure your Docker is running
+4. Check the Port 3000 and 3001 is free
+5. Run the command ``docker-compose up --build -d``
+6. The backend is setup and you should see the backend show up at containers in docker
+7. The backend interface should now open you ``localhost:3001`` or ``127.0.0.1:3001``
+8. go to the web page of ``localhost:3001`` or ``127.0.0.1:3001``, you can see a JSON ``{test:"success"}``
+
+
 
 ## database
 
@@ -29,6 +42,7 @@ docker run --name mysql --network sample-network -p 3000:3306 --restart always -
 **Fast reset**
 
 ```shell
+docker stop 
 docker rm sample-app
 docker rmi sample-app
 
