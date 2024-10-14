@@ -1,0 +1,19 @@
+{
+    "connection":{
+        "connectionLimit": 10,
+        "host": "sample-mysql",
+        "user": "root",
+        "password": "password"
+    },
+    "database":"sample_database",
+    "table_name":[
+        "sample_table"
+    ],
+    "tables":[
+        [
+            "CREATE TABLE sample_table (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, value VARCHAR(50) NOT NULL)"
+        ]
+    ]
+    
+    
+}
