@@ -32,7 +32,7 @@ router.post("/account",(req,res)=>{
   // TODO: add more res detail
   // run the sql via SQLoperate class
   SQL.runsql(sql).then((result)=>{
-    res.status(200).json(result);
+    res.status(200).json({"token":result.rows.insertId});
   },(err)=>{
     res.status(400).json(err);
   })
@@ -63,7 +63,8 @@ router.get("/account",(req,res)=>{
   // TODO: add more res detail
   // run the sql via SQLoperate class
   SQL.runsql(sql).then((result)=>{
-    res.status(200).json(result);
+
+    res.status(200).json({"token":result.rows[0].user_id});
   },(err)=>{
     res.status(400).json(err);
   })

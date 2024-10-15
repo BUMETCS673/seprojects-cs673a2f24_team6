@@ -42,7 +42,7 @@ docker run --name mysql --network sample-network -p 3000:3306 --restart always -
 **Fast reset**
 
 ```shell
-docker stop 
+docker stop sample-app
 docker rm sample-app
 docker rmi sample-app
 
