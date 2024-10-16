@@ -5,11 +5,9 @@
         <img src="@/assets/logo.png" alt="Logo" />
       </div>
       <h2>Login</h2>
-      <form @submit.prevent="login">
-        <input v-model="email" placeholder="Email" class="input-box" />
-        <input v-model="password" type="password" placeholder="Password" class="input-box" />
-        <button type="submit" class="login-button">Continue</button>
-      </form>
+      <input v-model="email" placeholder="Email" class="input-box" />
+      <input v-model="password" type="password" placeholder="Password" class="input-box" />
+      <button @click="logina">Continue</button> 
       <p class="support-text">
         You have asked to login to the Fitness Plan Builder. <br />
         Please enter your credentials to proceed.
@@ -19,32 +17,71 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+// import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+
 export default {
-  setup() {
-    const email = ref('');
-    const password = ref('');
-    const router = useRouter();
-
-    const login = () => {
-
-      // 这里是模拟登录的admin账号，仅用于demo，连了后端存储就可以不要了
-      if (email.value === 'admin@example.com' && password.value === 'admin123') {
-        localStorage.setItem('loggedIn', 'true');
-        router.push('/welcome');
-      } else {
-        alert('Invalid credentials.');
-      }
-    };
-
+  data () {
     return {
-      email,
-      password,
-      login
-    };
+      router: useRouter(),
+      email: '', 
+      password: ''
+    }
+  }, 
+
+  methods: {
+    logina () {
+      
+      let url = 'http://127.0.0.1:3001/api/account?email=' + encodeURIComponent(this.email);
+      url += '&password=' + encodeURIComponent(this.password);
+      
+
+      fetch(url, { method: 'get' })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok')
+          }
+          return response.json()
+        })
+        .then(data => {
+          localStorage.setItem('loggedIn', 'true');   // safety check success
+          alert(data);                                // show logged in
+          window.location.href = '/welcome';          // go to welcome page
+        })
+        .catch(error => {
+          console.error('Error:', error)
+        })
+    },
   }
+
+
+
+
+
+
+//   setup() {
+//     const email = ref('');
+//     const password = ref('');
+//     const router = useRouter();
+
+//     const login = () => {
+
+//       // simulate loginnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+//       if (email.value === 'admin@example.com' && password.value === 'admin123') {
+//         localStorage.setItem('loggedIn', 'true');
+//         router.push('/welcome');
+//       } else {
+//         alert('Invalid credentials.');
+//       }
+//     };
+
+//     return {
+//       email,
+//       password,
+//       login
+//     };
+//   }
 };
 </script>
 

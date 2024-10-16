@@ -20,6 +20,12 @@
           <img src="@/assets/push-up.png" alt="Push Up" />
           <p>Push Up</p>
         </router-link>
+      
+      
+      <!-- jump to a existing domain name-->
+      <div class="external-button-container">
+        <button @click="redirectToAmazon" class="external-button">go to ................</button>
+      </div>
 
 
         
@@ -35,8 +41,15 @@
 
 <script>
 export default {
-  name: 'WelcomePage'
-};
+  name: 'WelcomePage',
+
+  methods: {
+    redirectToAmazon() {
+      window.location.href = 'https://www.amazon.com';
+    }
+  }
+}
+
 </script>
 
 <style scoped>
@@ -107,4 +120,26 @@ p {
 .exercise-card:hover {
   transform: scale(1.05);
 }
+
+
+.external-button-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.external-button {
+  background-color: #ff9900;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.external-button:hover {
+  background-color: #e68a00;
+}
+
 </style>
