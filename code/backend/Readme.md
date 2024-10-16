@@ -45,7 +45,8 @@ docker run --name mysql --network sample-network -p 3000:3306 --restart always -
 docker stop sample-app
 docker rm sample-app
 docker rmi sample-app
-
+docker build -t sample-app .
+docker run --name sample-app --network sample-network -p 3001:3000 -d --restart always sample-app
 ```
 
 

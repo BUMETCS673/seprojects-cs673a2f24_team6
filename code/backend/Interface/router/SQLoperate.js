@@ -4,7 +4,7 @@ const config = require('../config/database.json')
 // create the connection to database
 let pool = mysql.createPool(config.connection);
 
-async function runsql(sql){
+async function runsql(sql,value){
     
     return new Promise((resolve, reject)=>{
       pool.getConnection((err,connection)=>{
@@ -12,7 +12,7 @@ async function runsql(sql){
           connection.release();
           reject(err);
         } 
-        connection.query(sql,(err,rows)=>{
+        connection.query(sql,value,(err,rows)=>{
           connection.release();
           if(err) reject(err);
           resolve({rows:rows});
