@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>sample html</title>
+
+</head>
+<body>
+    <h1>sample html</h1>
+    <p>data:</p>
+    <p id="input"></p>
+
+    <h1>Video Player</h1>
+    <video controls width="800">
+        <source src="/file/video" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+</body>
+
+<script>
+    fetch("/").then(function(response) {
+  return response.json();
+}).then(function(data) {
+  console.log(data);
+  document.getElementById("input").innerText=data.test;
+}).catch(function(err) {
+  console.log('Fetch Error :-S', err);
+});
+
+//   document.getElementById("input").innerText="test";
+
+</script>
+
+</html>
