@@ -17,7 +17,7 @@ FitFusion is a web-based fitness tracking platform  designed for fitness enthusi
 
 - **Frontend**: Vue.js
 - **Backend**: Node.js
-- **Database**: MongoDB
+- **Database**: MySQL
 - **AI Integration**: ChatGPT API or Llama API
 - **Version Control**: Git & GitHub
 - **Containerization**: Docker
