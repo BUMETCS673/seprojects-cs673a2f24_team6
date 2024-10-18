@@ -1,0 +1,17 @@
+version: '1'
+
+services:
+  frontend:
+    image: frontend
+    build:
+      context: .
+    container_name: frontend
+    restart: always
+    ports:
+      - "8080:80"
+    networks:
+      - sample-network
+
+networks:
+  sample-network:
+    driver: bridge
