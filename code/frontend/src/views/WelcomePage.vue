@@ -22,7 +22,7 @@
         </router-link>
       
       
-      <!-- jump to a existing domain name-->
+      <!-- jump to a existing domain name -->
       <div class="external-button-container">
         <button @click="redirectToAmazon" class="external-button">go to ................</button>
       </div>
