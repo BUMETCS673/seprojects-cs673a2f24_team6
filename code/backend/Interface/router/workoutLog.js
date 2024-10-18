@@ -1,34 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const WorkoutLog = require('../models/WorkoutLog');
+const WorkoutLogController = require('../controllers/WorkoutLogController');
 
-// Record a new workout log
-router.post("/workout-log", async (req, res) => {
-  const { user, exercises, workoutDate, duration } = req.body;
+// Route to create a workout log
+router.post('/create', WorkoutLogController.createLog);
 
-  if (!user || !exercises || exercises.length === 0) {
-    return res.status(400).json({ err: "Missing required fields" });
-  }
+// Route to get all workout logs for a user
+router.get('/:userId', WorkoutLogController.getAllLogs);
 
-  try {
-    const newWorkoutLog = new WorkoutLog({ user, exercises, workoutDate, duration });
-    await newWorkoutLog.save();
-    res.status(201).json(newWorkoutLog);
-  } catch (err) {
-    res.status(500).json({ err: "Failed to record workout log" });
-  }
-});
+// Route to get a specific workout log by ID
+router.get('/:id', WorkoutLogController.getLogById);
 
-// Get workout logs for a user
-router.get("/workout-logs/:userId", async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const logs = await WorkoutLog.find({ user: userId }).populate('exercises.exercise');
-    res.status(200).json(logs);
-  } catch (err) {
-    res.status(500).json({ err: "Failed to fetch workout logs" });
-  }
-});
+// Route to delete a workout log by ID
+router.delete('/:id', WorkoutLogController.deleteLog);
 
 module.exports = router;

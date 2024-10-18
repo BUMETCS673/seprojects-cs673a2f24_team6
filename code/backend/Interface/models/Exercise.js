@@ -1,27 +1,27 @@
-const mongoose = require('mongoose');
+const { runsql } = require('../utils/SQL');
 
-// Define the schema for an exercise
-const ExerciseSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,  // Name of the exercise, e.g., "Bench Press"
+// Exercise Model
+module.exports = {
+  create: async (exerciseData) => {
+    const { name, type, duration, userId } = exerciseData;
+
+    const sql = `INSERT INTO exercises (name, type, duration, user_id) VALUES (?, ?, ?, ?)`;
+    return await runsql(sql, [name, type, duration || null, userId]);
   },
-  category: {
-    type: String,
-    required: true,  // e.g., "Strength", "Cardio"
+
+  findAll: async (userId) => {
+    const sql = `SELECT * FROM exercises WHERE user_id = ?`;
+    return await runsql(sql, [userId]);
   },
-  equipment: {
-    type: String,    // Equipment used, e.g., "Dumbbell", "Kettlebell"
+
+  findById: async (id) => {
+    const sql = `SELECT * FROM exercises WHERE id = ?`;
+    const [exercise] = await runsql(sql, [id]);
+    return exercise;
   },
-  description: {
-    type: String,    // Short description of the exercise
-  },
-  muscleGroups: [String], // List of muscle groups targeted, e.g., ["Chest", "Triceps"]
-  createdAt: {
-    type: Date,
-    default: Date.now,
+
+  delete: async (id) => {
+    const sql = `DELETE FROM exercises WHERE id = ?`;
+    return await runsql(sql, [id]);
   }
-});
-
-// Create and export the model
-module.exports = mongoose.model('Exercise', ExerciseSchema);
+};

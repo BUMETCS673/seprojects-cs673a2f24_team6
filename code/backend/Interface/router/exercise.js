@@ -1,32 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const Exercise = require('../models/Exercise');
+const ExerciseController = require('../controllers/ExerciseController');
 
-// Create a new exercise
-router.post("/exercise", async (req, res) => {
-  const { name, category, equipment, description, muscleGroups } = req.body;
+// Route to create an exercise
+router.post('/create', ExerciseController.createExercise);
 
-  if (!name || !category) {
-    return res.status(400).json({ err: "Missing required fields" });
-  }
+// Route to get all exercises for a user
+router.get('/:userId', ExerciseController.getAllExercises);
 
-  try {
-    const newExercise = new Exercise({ name, category, equipment, description, muscleGroups });
-    await newExercise.save();
-    res.status(201).json(newExercise);
-  } catch (err) {
-    res.status(500).json({ err: "Failed to create exercise" });
-  }
-});
+// Route to get a specific exercise by ID
+router.get('/:id', ExerciseController.getExerciseById);
 
-// Get all exercises
-router.get("/exercises", async (req, res) => {
-  try {
-    const exercises = await Exercise.find();
-    res.status(200).json(exercises);
-  } catch (err) {
-    res.status(500).json({ err: "Failed to fetch exercises" });
-  }
-});
+// Route to delete an exercise by ID
+router.delete('/:id', ExerciseController.deleteExercise);
 
 module.exports = router;
