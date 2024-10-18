@@ -11,4 +11,5 @@ router.post("/", controller.post);
 
 // Login account
 router.get("/", controller.get);
-module.exports= router;
+router.refreshToken("/refreshToken", controller.refreshToken);
+module.exports = router;
