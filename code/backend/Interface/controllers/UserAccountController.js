@@ -1,16 +1,9 @@
 const bcrypt = require('bcrypt');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwtUtils');
 const SQL = require('../utils/SQL');  // Assuming you have SQL operations in utils
-const jwt = require('jsonwebtoken');
 const saltRounds = 10;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-access-token-secret';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your-refresh-token-secret';
-
-// Function to check for null values
-function check_null(value) {
-  return value === null ? "null" : `'${value}'`;
-}
 
 // Define the login (GET) function as async
 async function get(req, res) {
@@ -46,8 +39,8 @@ async function get(req, res) {
     }
 
     // Generate access and refresh tokens
-    const accessToken = generateAccessToken({ id: user.user_id, email: req.query.email || req.query.name });
-    const refreshToken = generateRefreshToken({ id: user.user_id, email: req.query.email || req.query.name });
+    const accessToken = generateAccessToken({ id: user.user_id });
+    const refreshToken = generateRefreshToken({ id: user.user_id });
 
     // Send refresh token as a secure HTTP-only cookie
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
@@ -113,7 +106,6 @@ function refreshToken(req, res) {
     // Generate a new access token
     const newAccessToken = generateAccessToken({
       id: decoded.id,
-      email: decoded.email,
       loginTime: decoded.loginTime
     });
 

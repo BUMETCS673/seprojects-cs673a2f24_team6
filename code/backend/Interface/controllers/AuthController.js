@@ -31,14 +31,12 @@ async function login(req, res) {
         // Generate the short-lived access token (expires in 1 hour)
         const accessToken = jwt.sign({
             id: user.id,
-            email: user.email,
             loginTime: loginTime
         }, JWT_SECRET, { expiresIn: '1h' });
 
         // Generate the long-lived refresh token (expires in 7 days)
         const refreshToken = jwt.sign({
             id: user.id,
-            email: user.email,
             loginTime: loginTime
         }, REFRESH_SECRET, { expiresIn: '7d' });
 
@@ -53,5 +51,5 @@ async function login(req, res) {
 
 module.exports = {
     login,
-    // other authentication functions...
+
 };

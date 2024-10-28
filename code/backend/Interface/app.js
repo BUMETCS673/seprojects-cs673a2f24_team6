@@ -17,10 +17,10 @@ app.get('/', (req, res) => { res.json({ test: "success" }) });
 app.use('/api', router);
 
 // Centralized error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
-});
+// app.use((err, req, res, next) => {
+//     console.error(err.stack);
+//     res.status(500).json({ error: 'Something went wrong!' });
+// });
 
 //Updated to use .env file's PORT, if not found use 3000 as default
 const PORT = process.env.PORT || 3000;

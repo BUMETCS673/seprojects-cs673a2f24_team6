@@ -5,7 +5,7 @@ module.exports = {
   create: async (exerciseData) => {
     const { name, type, duration, userId } = exerciseData;
 
-    const sql = `INSERT INTO exercises (name, type, duration, user_id) VALUES (?, ?, ?, ?)`;
+    const sql = `INSERT INTO exercises (name, type, duration) VALUES (?, ?, ?)`;
     return await runsql(sql, [name, type, duration || null, userId]);
   },
 

@@ -10,7 +10,6 @@ const REFRESH_TOKEN_EXPIRY = '7d'; // Refresh token expiry time
 function generateAccessToken(user) {
     return jwt.sign({
         id: user.id,
-        email: user.email,
         loginTime: Date.now()
     }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
 }
@@ -19,7 +18,6 @@ function generateAccessToken(user) {
 function generateRefreshToken(user) {
     return jwt.sign({
         id: user.id,
-        email: user.email,
         loginTime: Date.now()
     }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
 }

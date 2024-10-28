@@ -1,7 +1,8 @@
 const Exercise = require('../models/Exercise');
-
+const authMiddleware = require('../utils/authMiddleware')
 async function createExercise(req, res) {
     const { name, type, duration, userId } = req.body;
+    authMiddleware
 
     if (!name || !type || !userId) {
         return res.status(400).json({ error: "Name, type, and userId are required." });
