@@ -2,5 +2,8 @@ FROM node
 COPY . .
 EXPOSE 3001
 WORKDIR Interface
-RUN npm install
+COPY package*.json ./
+RUN npm cache clean --force && npm install
+
+
 CMD ["npm","start"]
