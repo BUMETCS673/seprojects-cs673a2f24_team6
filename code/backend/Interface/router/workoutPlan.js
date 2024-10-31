@@ -1,17 +1,34 @@
+// routes/workoutPlan.routes.js
 const express = require('express');
 const router = express.Router();
-const WorkoutPlanController = require('../controllers/WorkoutPlanController');
+const workoutPlanController = require('../controllers/workoutPlan.controller');
+const auth = require('../middleware/auth');
 
-// Route for creating a new workout plan
-router.post("/", WorkoutPlanController.createWorkoutPlan);
+// All routes require authentication
+router.use(auth);
 
-// Route for deleting a workout plan
-router.delete("/", WorkoutPlanController.deleteWorkoutPlan);
+// Create a new workout plan
+router.post('/', workoutPlanController.createPlan);
 
-// Route for updating an existing workout plan
-router.put("/", WorkoutPlanController.updateWorkoutPlan);
+// Get all workout plans for the authenticated user
+router.get('/', workoutPlanController.getUserPlans);
 
-// Route for getting all workout plans for a user
-router.get("/", WorkoutPlanController.getWorkoutPlans);
+// Get active workout plans
+router.get('/active', workoutPlanController.getActivePlans);
+
+// Get plans by frequency type
+router.get('/frequency/:frequency_type', workoutPlanController.getPlansByFrequency);
+
+// Get a specific workout plan
+router.get('/:id', workoutPlanController.getPlan);
+
+// Update a workout plan
+router.put('/:id', workoutPlanController.updatePlan);
+
+// Update workout plan status
+router.patch('/:id/status', workoutPlanController.updatePlanStatus);
+
+// Delete a workout plan
+router.delete('/:id', workoutPlanController.deletePlan);
 
 module.exports = router;

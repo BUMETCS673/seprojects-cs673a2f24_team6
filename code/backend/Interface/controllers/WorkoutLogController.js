@@ -1,70 +1,159 @@
-const WorkoutLog = require('../models/WorkoutLog');
+// controllers/workoutLog.controller.js
+const WorkoutLog = require('../models/workoutLog.model');
 
-// Define the functions first
-
-// Function to create a workout log
-async function createLog(req, res) {
-    const { exerciseId, userId, date, reps, sets, weight, duration, distance } = req.body;
-
-    if (!exerciseId || !userId || !date) {
-        return res.status(400).json({ error: "Exercise ID, User ID, and Date are required." });
-    }
-
-    try {
-        const log = await WorkoutLog.createLog({ exerciseId, userId, date, reps, sets, weight, duration, distance });
-        res.status(201).json({ message: "Workout log created successfully.", log });
-    } catch (error) {
-        console.error("Error creating workout log:", error);
-        res.status(500).json({ error: "Server error." });
-    }
-}
-
-// Function to get all workout logs for a user
-async function getAllLogs(req, res) {
-    const { userId } = req.params;
-
-    try {
-        const logs = await WorkoutLog.findAllLogs(userId);
-        res.status(200).json(logs);
-    } catch (error) {
-        console.error("Error retrieving workout logs:", error);
-        res.status(500).json({ error: "Server error." });
-    }
-}
-
-// Function to get a specific workout log by ID
-async function getLogById(req, res) {
-    const { id } = req.params;
-
-    try {
-        const log = await WorkoutLog.findLogById(id);
-        if (!log) {
-            return res.status(404).json({ error: "Workout log not found." });
+class WorkoutLogController {
+    async createWorkout(req, res) {
+        try {
+            const result = await WorkoutLog.create(req.body);
+            res.status(201).json({
+                success: true,
+                message: 'Workout log created successfully',
+                data: result.rows
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error creating workout log',
+                error: error.message
+            });
         }
-        res.status(200).json(log);
-    } catch (error) {
-        console.error("Error retrieving workout log:", error);
-        res.status(500).json({ error: "Server error." });
+    }
+
+    async getWorkout(req, res) {
+        try {
+            const workout = await WorkoutLog.findById(req.params.id);
+            if (!workout) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Workout log not found'
+                });
+            }
+            res.json({
+                success: true,
+                data: workout
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving workout log',
+                error: error.message
+            });
+        }
+    }
+
+    async getUserWorkouts(req, res) {
+        try {
+            const workouts = await WorkoutLog.findByUserId(req.params.userId);
+            res.json({
+                success: true,
+                data: workouts
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving user workouts',
+                error: error.message
+            });
+        }
+    }
+
+    async updateWorkout(req, res) {
+        try {
+            const result = await WorkoutLog.update(req.params.id, req.body);
+            if (result.rows.affectedRows === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Workout log not found'
+                });
+            }
+            res.json({
+                success: true,
+                message: 'Workout log updated successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error updating workout log',
+                error: error.message
+            });
+        }
+    }
+
+    async updateWorkoutStatus(req, res) {
+        try {
+            const result = await WorkoutLog.updateStatus(req.params.id, req.body.status);
+            if (result.rows.affectedRows === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Workout log not found'
+                });
+            }
+            res.json({
+                success: true,
+                message: 'Workout status updated successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error updating workout status',
+                error: error.message
+            });
+        }
+    }
+
+    async deleteWorkout(req, res) {
+        try {
+            const result = await WorkoutLog.delete(req.params.id);
+            if (result.rows.affectedRows === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Workout log not found'
+                });
+            }
+            res.json({
+                success: true,
+                message: 'Workout log deleted successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error deleting workout log',
+                error: error.message
+            });
+        }
+    }
+
+    async getWorkoutsByStatus(req, res) {
+        try {
+            const workouts = await WorkoutLog.findByStatus(req.params.userId, req.params.status);
+            res.json({
+                success: true,
+                data: workouts
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving workouts by status',
+                error: error.message
+            });
+        }
+    }
+
+    async getTotalWorkoutTime(req, res) {
+        try {
+            const totalTime = await WorkoutLog.calculateTotalTime(req.params.userId);
+            res.json({
+                success: true,
+                data: { totalTime }
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error calculating total workout time',
+                error: error.message
+            });
+        }
     }
 }
 
-// Function to delete a workout log by ID
-async function deleteLog(req, res) {
-    const { id } = req.params;
-
-    try {
-        await WorkoutLog.deleteLog(id);
-        res.status(200).json({ message: "Workout log deleted successfully." });
-    } catch (error) {
-        console.error("Error deleting workout log:", error);
-        res.status(500).json({ error: "Server error." });
-    }
-}
-
-// Export the functions
-module.exports = {
-    createLog,
-    getAllLogs,
-    getLogById,
-    deleteLog
-};
+module.exports = new WorkoutLogController();

@@ -1,17 +1,37 @@
+// routes/workoutLog.routes.js
 const express = require('express');
 const router = express.Router();
-const WorkoutLogController = require('../controllers/WorkoutLogController');
+const workoutLogController = require('../controllers/workoutLog.controller');
+const auth = require('../middleware/auth');
 
-// Route to create a workout log
-router.post('/create', WorkoutLogController.createLog);
+// All routes require authentication
+router.use(auth);
 
-// Route to get all workout logs for a user
-router.get('/:userId', WorkoutLogController.getAllLogs);
+// Create a new workout log
+router.post('/', workoutLogController.createWorkout);
 
-// Route to get a specific workout log by ID
-router.get('/:id', WorkoutLogController.getLogById);
+// Get all workouts for the authenticated user
+router.get('/', workoutLogController.getUserWorkouts);
 
-// Route to delete a workout log by ID
-router.delete('/:id', WorkoutLogController.deleteLog);
+// Get workouts by date range
+router.get('/range', workoutLogController.getWorkoutsByDateRange);
+
+// Get workouts for a specific day
+router.get('/day/:date', workoutLogController.getWorkoutsByDay);
+
+// Get workout statistics
+router.get('/stats', workoutLogController.getStats);
+
+// Get a specific workout log
+router.get('/:id', workoutLogController.getWorkout);
+
+// Update a workout log
+router.put('/:id', workoutLogController.updateWorkout);
+
+// Update workout status
+router.patch('/:id/status', workoutLogController.updateWorkoutStatus);
+
+// Delete a workout log
+router.delete('/:id', workoutLogController.deleteWorkout);
 
 module.exports = router;
