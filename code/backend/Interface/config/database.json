@@ -8,29 +8,43 @@
     "database": "backend_database",
     "table_name": [
         "user_account",
+        "user_profile",
         "exercises",
         "workout_log",
         "workout_plan"
     ],
     "tables": [
         [
-            "CREATE TABLE user_account (user_id INT AUTO_INCREMENT UNIQUE, user_email VARCHAR(255) PRIMARY KEY, user_name VARCHAR(255) UNIQUE NOT NULL, user_password VARCHAR(255) NOT NULL, user_group_id INT, user_role INT)"
+            "CREATE TABLE user_account (user_id INT AUTO_INCREMENT UNIQUE, user_email VARCHAR(255) PRIMARY KEY, user_name VARCHAR(255) UNIQUE NOT NULL, user_password VARCHAR(255) NOT NULL, user_group_id INT, user_role INT)",
+            "CREATE INDEX idx_user_account_email ON user_account(user_email)",
+            "CREATE INDEX idx_user_account_name ON user_account(user_name)"
         ],
         [
-            "CREATE TABLE exercises (exercise_id INT AUTO_INCREMENT, name VARCHAR(255) NOT NULL, description TEXT, equipment VARCHAR(255), type VARCHAR(50), reps INT, sets INT, duration INT, user_id INT, PRIMARY KEY (exercise_id))",
-            "ALTER TABLE exercises ADD CONSTRAINT fk_user_id_e FOREIGN KEY (user_id) REFERENCES user_account(user_id)"
+            "CREATE TABLE user_profile (profile_id INT AUTO_INCREMENT, user_id INT UNIQUE NOT NULL, avatar_url VARCHAR(255), introduction TEXT, height DECIMAL(5,2), weight DECIMAL(5,2), fitness_level ENUM('beginner', 'intermediate', 'advanced'), fitness_goals TEXT, preferred_workout_time TIME, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (profile_id))",
+            "ALTER TABLE user_profile ADD CONSTRAINT fk_user_id_profile FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE"
         ],
         [
-            "CREATE TABLE workout_log (record_id INT AUTO_INCREMENT UNIQUE, user_id INT NOT NULL, exercise_id INT, log_date DATE NOT NULL, description TEXT, number_of_set INT, status ENUM('Todo', 'Doing', 'Done') DEFAULT 'Todo', priority INT CHECK (priority BETWEEN 0 AND 10), start_time TIMESTAMP, end_time TIMESTAMP, total_time INT, PRIMARY KEY (record_id))",
-            "ALTER TABLE workout_log ADD CONSTRAINT fk_user_id_l FOREIGN KEY (user_id) REFERENCES user_account(user_id)",
-            "ALTER TABLE workout_log ADD CONSTRAINT fk_exercise_id_l FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)"
+            "CREATE TABLE exercises (exercise_id INT AUTO_INCREMENT, name VARCHAR(255) NOT NULL, description TEXT, equipment VARCHAR(255), type VARCHAR(50), reps INT, sets INT, duration INT, user_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (exercise_id))",
+            "ALTER TABLE exercises ADD CONSTRAINT fk_user_id_e FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE SET NULL",
+            "CREATE INDEX idx_exercises_type ON exercises(type)",
+            "CREATE INDEX idx_exercises_name ON exercises(name)",
+            "CREATE INDEX idx_exercises_user ON exercises(user_id)"
+        ],
+        [
+            "CREATE TABLE workout_log (record_id INT AUTO_INCREMENT UNIQUE, user_id INT NOT NULL, exercise_id INT, log_date DATE NOT NULL, description TEXT, number_of_set INT, status ENUM('Todo', 'Doing', 'Done') DEFAULT 'Todo', priority INT CHECK (priority BETWEEN 0 AND 10), start_time TIMESTAMP, end_time TIMESTAMP, total_time INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (record_id))",
+            "ALTER TABLE workout_log ADD CONSTRAINT fk_user_id_l FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE",
+            "ALTER TABLE workout_log ADD CONSTRAINT fk_exercise_id_l FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id) ON DELETE SET NULL",
+            "CREATE INDEX idx_workout_log_date ON workout_log(log_date)",
+            "CREATE INDEX idx_workout_log_user_date ON workout_log(user_id, log_date)",
+            "CREATE INDEX idx_workout_log_status ON workout_log(status)"
         ],
         [
             "CREATE TABLE workout_plan (plan_id INT AUTO_INCREMENT, user_id INT NOT NULL, exercise_id INT NOT NULL, name VARCHAR(255) NOT NULL, description TEXT, start_date DATE NOT NULL, end_date DATE, target_sets INT, target_reps INT, target_duration INT, frequency_type ENUM('daily', 'weekly', 'monthly', 'custom') NOT NULL, frequency_value INT NOT NULL, days_of_week SET('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'), preferred_time TIME, priority INT CHECK (priority BETWEEN 0 AND 10), status ENUM('active', 'paused', 'completed', 'cancelled') DEFAULT 'active', reminder_enabled BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (plan_id))",
-            "ALTER TABLE workout_plan ADD CONSTRAINT fk_user_id_p FOREIGN KEY (user_id) REFERENCES user_account(user_id)",
-            "ALTER TABLE workout_plan ADD CONSTRAINT fk_exercise_id_p FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)",
+            "ALTER TABLE workout_plan ADD CONSTRAINT fk_user_id_p FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE",
+            "ALTER TABLE workout_plan ADD CONSTRAINT fk_exercise_id_p FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id) ON DELETE RESTRICT",
             "CREATE INDEX idx_workout_plan_user ON workout_plan(user_id)",
-            "CREATE INDEX idx_workout_plan_dates ON workout_plan(start_date, end_date)"
+            "CREATE INDEX idx_workout_plan_dates ON workout_plan(start_date, end_date)",
+            "CREATE INDEX idx_workout_plan_status ON workout_plan(status)"
         ]
     ]
 }

@@ -1,120 +1,298 @@
-const bcrypt = require('bcrypt');
+// controllers/userAccount.controller.js
+const UserAccount = require('../models/userAccount.model');
+const UserProfile = require('../models/userProfile.model');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwtUtils');
-const SQL = require('../utils/SQL');  // Assuming you have SQL operations in utils
-const saltRounds = 10;
 
-const REFRESH_SECRET = process.env.REFRESH_SECRET || 'your-refresh-token-secret';
+class UserAccountController {
+    async login(req, res) {
+        try {
+            const { identifier, password } = req.body; // identifier can be email or username
 
-// Define the login (GET) function as async
-async function get(req, res) {
-  if ((!req.query.email && !req.query.name) || !req.query.password) {
-    return res.status(400).json({ err: "Missing required values" });
-  }
+            if (!identifier || !password) {
+                return res.status(400).json({ error: "Credentials required" });
+            }
 
-  let sql = ``;
-  let value = [];
+            const user = await UserAccount.checkCredentials(identifier, password);
+            if (!user) {
+                return res.status(401).json({ error: "Invalid credentials" });
+            }
 
-  if (!req.query.email) {
-    // login with username
-    sql = `SELECT user_id, user_password FROM user_account WHERE user_name = ?`;
-    value = [req.query.name];
-  } else {
-    // login with email
-    sql = `SELECT user_id, user_password FROM user_account WHERE user_email = ?`;
-    value = [req.query.email];
-  }
+            const accessToken = generateAccessToken({ id: user.user_id });
+            const refreshToken = generateRefreshToken({ id: user.user_id });
 
-  try {
-    const result = await SQL.runsql(sql, value);
+            res.cookie('refreshToken', refreshToken, { 
+                httpOnly: true, 
+                secure: true, 
+                maxAge: 7 * 24 * 60 * 60 * 1000 
+            });
 
-    if (result.rows.length === 0) {
-      return res.status(400).json({ err: "User not found" });
+            res.json({ 
+                success: true,
+                accessToken,
+                user: {
+                    id: user.user_id,
+                    email: user.user_email,
+                    username: user.user_name
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: "Error during login"
+            });
+        }
     }
 
-    // Check if password matches
-    const user = result.rows[0];
-    const isPasswordValid = await bcrypt.compare(req.query.password, user.user_password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ err: "Incorrect password" });
+    async register(req, res) {
+        try {
+            const { email, username, password, profile } = req.body;
+
+            // Validate input
+            if (!email || !username || !password) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Missing required fields"
+                });
+            }
+
+            // Check if user exists
+            const existingUser = await UserAccount.findByEmail(email) || 
+                               await UserAccount.findByUsername(username);
+            
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Email or username already in use"
+                });
+            }
+
+            // Create user account
+            const result = await UserAccount.create({
+                email,
+                username,
+                password
+            });
+
+            const userId = result.rows.insertId;
+
+            // Create user profile if provided
+            if (profile) {
+                await UserProfile.create({
+                    user_id: userId,
+                    ...profile
+                });
+            }
+
+            res.status(201).json({
+                success: true,
+                message: "User registered successfully",
+                userId
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: "Error during registration"
+            });
+        }
     }
 
-    // Generate access and refresh tokens
-    const accessToken = generateAccessToken({ id: user.user_id });
-    const refreshToken = generateRefreshToken({ id: user.user_id });
+    async refreshToken(req, res) {
+        const refreshToken = req.cookies.refreshToken;
 
-    // Send refresh token as a secure HTTP-only cookie
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 }); // 7 days
-    return res.status(200).json({ accessToken });
+        if (!refreshToken) {
+            return res.status(403).json({ error: "No refresh token" });
+        }
 
-  } catch (err) {
-    return res.status(400).json(err);
+        try {
+            const decoded = verifyRefreshToken(refreshToken);
+            const accessToken = generateAccessToken({ id: decoded.id });
+
+            res.json({ 
+                success: true,
+                accessToken 
+            });
+        } catch (error) {
+            res.status(403).json({ 
+                success: false,
+                error: "Invalid refresh token" 
+            });
+        }
+    }
+
+    async getProfile(req, res) {
+      try {
+          // Get both user account and profile data
+          const [user, profile] = await Promise.all([
+              UserAccount.findById(req.user.id),
+              UserProfile.findByUserId(req.user.id)
+          ]);
+
+          if (!user) {
+              return res.status(404).json({
+                  success: false,
+                  message: 'User not found'
+              });
+          }
+
+          // If profile doesn't exist, create an empty one
+          if (!profile) {
+              const newProfile = await UserProfile.create({
+                  user_id: req.user.id
+              });
+              
+              return res.json({
+                  success: true,
+                  data: {
+                      user: {
+                          email: user.user_email,
+                          username: user.user_name,
+                          role: user.user_role
+                      },
+                      profile: newProfile.rows[0]
+                  }
+              });
+          }
+
+          res.json({
+              success: true,
+              data: {
+                  user: {
+                      email: user.user_email,
+                      username: user.user_name,
+                      role: user.user_role
+                  },
+                  profile
+              }
+          });
+      } catch (error) {
+          res.status(500).json({
+              success: false,
+              message: 'Error retrieving user profile',
+              error: error.message
+          });
+      }
+  }
+
+  async updateProfile(req, res) {
+      try {
+          const { avatar_url, introduction, height, weight, fitness_level, fitness_goals, preferred_workout_time } = req.body;
+
+          // Validate numeric inputs
+          if (height && (isNaN(height) || height <= 0)) {
+              return res.status(400).json({
+                  success: false,
+                  message: 'Invalid height value'
+              });
+          }
+
+          if (weight && (isNaN(weight) || weight <= 0)) {
+              return res.status(400).json({
+                  success: false,
+                  message: 'Invalid weight value'
+              });
+          }
+
+          // Check if profile exists
+          const existingProfile = await UserProfile.findByUserId(req.user.id);
+
+          if (!existingProfile) {
+              // Create new profile
+              await UserProfile.create({
+                  user_id: req.user.id,
+                  avatar_url,
+                  introduction,
+                  height,
+                  weight,
+                  fitness_level,
+                  fitness_goals,
+                  preferred_workout_time
+              });
+          } else {
+              // Update existing profile
+              await UserProfile.update(req.user.id, {
+                  avatar_url,
+                  introduction,
+                  height,
+                  weight,
+                  fitness_level,
+                  fitness_goals,
+                  preferred_workout_time
+              });
+          }
+
+          // Get updated profile
+          const updatedProfile = await UserProfile.findByUserId(req.user.id);
+
+          res.json({
+              success: true,
+              message: 'Profile updated successfully',
+              data: updatedProfile
+          });
+      } catch (error) {
+          res.status(500).json({
+              success: false,
+              message: 'Error updating profile',
+              error: error.message
+          });
+      }
+  }
+
+  async updateAvatar(req, res) {
+      try {
+          // Assuming you're using a middleware for file upload
+          if (!req.file) {
+              return res.status(400).json({
+                  success: false,
+                  message: 'No image file provided'
+              });
+          }
+
+          const avatarUrl = req.file.path; // Or your cloud storage URL
+          
+          await UserProfile.update(req.user.id, {
+              avatar_url: avatarUrl
+          });
+
+          res.json({
+              success: true,
+              message: 'Avatar updated successfully',
+              data: { avatar_url: avatarUrl }
+          });
+      } catch (error) {
+          res.status(500).json({
+              success: false,
+              message: 'Error updating avatar',
+              error: error.message
+          });
+      }
+  }
+
+  async getBasicInfo(req, res) {
+      try {
+          const user = await UserAccount.findById(req.user.id);
+          if (!user) {
+              return res.status(404).json({
+                  success: false,
+                  message: 'User not found'
+              });
+          }
+
+          res.json({
+              success: true,
+              data: {
+                  email: user.user_email,
+                  username: user.user_name,
+                  role: user.user_role
+              }
+          });
+      } catch (error) {
+          res.status(500).json({
+              success: false,
+              message: 'Error retrieving user information',
+              error: error.message
+          });
+      }
   }
 }
 
-// Define the create user (POST) function as async
-async function post(req, res) {
-  const { email, name, password } = req.body;
-
-  if (!email || !name || !password) {
-    return res.status(400).json({ err: "Missing required values" });
-  }
-
-  // Validate email format
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if (!validateEmail(email)) {
-    return res.status(400).json({ err: "Invalid email format" });
-  }
-
-  // Check if email or username is already in use
-  const checkUserExist = async (email, name) => {
-    const sql = `SELECT user_id FROM user_account WHERE user_email = ? OR user_name = ?`;
-    const result = await SQL.runsql(sql, [email, name]);
-    return result.rows.length > 0;
-  }
-
-  if (await checkUserExist(email, name)) {
-    return res.status(400).json({ err: "Email or username already in use" });
-  }
-
-  try {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const sql = `INSERT INTO user_account (user_email, user_name, user_password) VALUES (?,?,?)`;
-    const value = [email, name, hashedPassword];
-
-    const result = await SQL.runsql(sql, value);  // SQL operation to create a user
-    return res.status(200).json({ userId: result.rows.insertId });  // Return the user ID
-
-  } catch (err) {
-    return res.status(400).json(err);
-  }
-}
-
-// Refresh token handler
-function refreshToken(req, res) {
-  const refreshToken = req.cookies.refreshToken;  // Get the refresh token from the HTTP-only cookie
-
-  if (!refreshToken) {
-    return res.status(403).json({ error: "No refresh token provided." });
-  }
-
-  try {
-    // Verify the refresh token
-    const decoded = verifyRefreshToken(refreshToken, REFRESH_SECRET);
-
-    // Generate a new access token
-    const newAccessToken = generateAccessToken({
-      id: decoded.id,
-      loginTime: decoded.loginTime
-    });
-
-    res.status(200).json({ accessToken: newAccessToken });
-  } catch (error) {
-    console.error("Error during refresh token verification:", error);
-    return res.status(403).json({ error: "Invalid refresh token." });
-  }
-}
-
-// Export all functions
-module.exports = { get, post, refreshToken };
+module.exports = new UserAccountController();

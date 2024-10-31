@@ -1,11 +1,19 @@
+// routes/user.routes.js
 const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/userAccount.controller');
+const auth = require('../middleware/auth');
+const upload = require('../middleware/upload');
 
-const controller = require('../controllers/UserAccountController');
+// Public routes
+router.post('/login', userController.login);
+router.post('/register', userController.register);
+router.post('/refresh-token', userController.refreshToken);
 
-// Create new account
-router.post("/", controller.post);
-// Login account
-router.get("/", controller.get);
-router.put("/refreshToken", controller.refreshToken);
+// Protected routes
+router.get('/me', auth, userController.getBasicInfo);
+router.get('/profile', auth, userController.getProfile);
+router.put('/profile', auth, userController.updateProfile);
+router.patch('/profile/avatar', auth, upload.single('avatar'), userController.updateAvatar);
+
 module.exports = router;
