@@ -5,16 +5,20 @@
   "main": "app.js",
   "scripts": {
     "test": "node test.js",
-    "start": "node app.js"
+    "start": "NODE_ENV=production node app.js",
+    "dev": "NODE_ENV=development nodemon app.js"
   },
   "author": "yunrui huang",
   "license": "ISC",
   "dependencies": {
-    "cors": "*",
-    "express": "*",
-    "mysql2": "*",
     "bcrypt": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "*",
+    "helmet": "^8.0.0",
     "jsonwebtoken": "*",
-    "dotenv": "*"
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "*"
   }
 }
