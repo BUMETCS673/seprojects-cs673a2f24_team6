@@ -51,13 +51,13 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api', router);
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found'
-    });
-});
+// // 404 handler
+// app.use((req, res) => {
+//     res.status(404).json({
+//         success: false,
+//         message: 'Route not found'
+//     });
+// });
 
 // Global error handler
 app.use((err, req, res, next) => {

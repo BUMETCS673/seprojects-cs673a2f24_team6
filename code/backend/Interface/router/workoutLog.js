@@ -13,14 +13,14 @@ router.post('/', workoutLogController.createWorkout);
 // Get all workouts for the authenticated user
 router.get('/', workoutLogController.getUserWorkouts);
 
-// Get workouts by date range
-router.get('/range', workoutLogController.getWorkoutsByDateRange);
+// // Get workouts by date range
+// router.get('/range', workoutLogController.getWorkoutsByDateRange);
 
-// Get workouts for a specific day
-router.get('/day/:date', workoutLogController.getWorkoutsByDay);
+// // Get workouts for a specific day
+// router.get('/day/:date', workoutLogController.getWorkoutsByDay);
 
 // Get workout statistics
-router.get('/stats', workoutLogController.getStats);
+// router.get('/stats', workoutLogController.getStats);
 
 // Get a specific workout log
 router.get('/:id', workoutLogController.getWorkout);

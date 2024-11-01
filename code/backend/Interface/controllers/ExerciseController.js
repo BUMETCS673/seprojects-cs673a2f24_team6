@@ -37,6 +37,39 @@ class ExerciseController {
         }
     }
 
+    // Get all exercise types
+    async getExerciseTypes(req, res) {
+        try {
+            const types = await Exercise.getTypes();
+            res.json({
+                success: true,
+                data: types
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving exercise types',
+                error: error.message
+            });
+        }
+    }
+
+    // Get all equipment options
+    async getEquipmentList(req, res) {
+        try {
+            const equipment = await Exercise.getEquipment();
+            res.json({
+                success: true,
+                data: equipment
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving equipment list',
+                error: error.message
+            });
+        }
+    }
     // Get a specific exercise
     async getExercise(req, res) {
         try {

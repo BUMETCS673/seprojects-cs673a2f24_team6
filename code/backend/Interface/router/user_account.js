@@ -14,6 +14,6 @@ router.post('/refresh-token', userController.refreshToken);
 router.get('/me', auth, userController.getBasicInfo);
 router.get('/profile', auth, userController.getProfile);
 router.put('/profile', auth, userController.updateProfile);
-router.patch('/profile/avatar', auth, upload.single('avatar'), userController.updateAvatar);
+router.patch('/profile/avatar', auth, upload.uploadSingle('avatar'), userController.updateAvatar);
 
 module.exports = router;
