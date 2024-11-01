@@ -1,12 +1,12 @@
-// controllers/workoutLog.controller.js
-const WorkoutLog = require('../models/workoutLog.model');
+// controllers/exercise.controller.js
+const Exercise = require('../models/Exercise');
 
-class WorkoutLogController {
-    // Create new workout log
-    async createWorkout(req, res) {
+class ExerciseController {
+    // Create new exercise
+    async createExercise(req, res) {
         try {
             // Validate required fields
-            const requiredFields = ['exercise_id', 'log_date'];
+            const requiredFields = ['name', 'type'];
             for (const field of requiredFields) {
                 if (!req.body[field]) {
                     return res.status(400).json({
@@ -16,39 +16,40 @@ class WorkoutLogController {
                 }
             }
 
-            const workoutData = {
+            // Add user_id for custom exercises, null for system exercises
+            const exerciseData = {
                 ...req.body,
-                user_id: req.user.id  // From auth middleware
+                user_id: req.body.is_system ? null : req.user.id
             };
 
-            const result = await WorkoutLog.create(workoutData);
+            const result = await Exercise.create(exerciseData);
             res.status(201).json({
                 success: true,
-                message: 'Workout log created successfully',
+                message: 'Exercise created successfully',
                 data: result.rows
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error creating workout log',
+                message: 'Error creating exercise',
                 error: error.message
             });
         }
     }
 
-    // Get a specific workout log
-    async getWorkout(req, res) {
+    // Get a specific exercise
+    async getExercise(req, res) {
         try {
-            const workout = await WorkoutLog.findById(req.params.id);
-            if (!workout) {
+            const exercise = await Exercise.findById(req.params.id);
+            if (!exercise) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Workout log not found'
+                    message: 'Exercise not found'
                 });
             }
 
-            // Check if the workout belongs to the user
-            if (workout.user_id !== req.user.id) {
+            // If it's a user-created exercise, check ownership
+            if (exercise.user_id && exercise.user_id !== req.user.id) {
                 return res.status(403).json({
                     success: false,
                     message: 'Access denied'
@@ -57,210 +58,193 @@ class WorkoutLogController {
 
             res.json({
                 success: true,
-                data: workout
+                data: exercise
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error retrieving workout log',
+                message: 'Error retrieving exercise',
                 error: error.message
             });
         }
     }
 
-    // Get all workouts for a user
-    async getUserWorkouts(req, res) {
+    // Get all exercises (including system exercises and user's custom exercises)
+    async getAllExercises(req, res) {
         try {
-            const workouts = await WorkoutLog.findByUserId(req.user.id);
+            const exercises = await Exercise.findAll(req.user.id);
             res.json({
                 success: true,
-                data: workouts
+                data: exercises
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error retrieving user workouts',
+                message: 'Error retrieving exercises',
                 error: error.message
             });
         }
     }
 
-    // Get workouts by date range
-    async getWorkoutsByDateRange(req, res) {
+    // Get exercises by type
+    async getExercisesByType(req, res) {
         try {
-            const { startDate, endDate } = req.query;
-            if (!startDate || !endDate) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Start date and end date are required'
-                });
-            }
-
-            const workouts = await WorkoutLog.findByDateRange(
-                req.user.id,
-                startDate,
-                endDate
-            );
+            const exercises = await Exercise.findByType(req.params.type, req.user.id);
             res.json({
                 success: true,
-                data: workouts
+                data: exercises
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error retrieving workouts',
+                message: 'Error retrieving exercises by type',
                 error: error.message
             });
         }
     }
 
-    // Get workouts for a specific day
-    async getWorkoutsByDay(req, res) {
+    // Get user's custom exercises
+    async getUserExercises(req, res) {
         try {
-            const { date } = req.params;
-            if (!date) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Date parameter is required'
-                });
-            }
-
-            const workouts = await WorkoutLog.getWorkoutsByDay(req.user.id, date);
-            const stats = await WorkoutLog.getDailyStats(req.user.id, date);
-
+            const exercises = await Exercise.findByUserId(req.user.id);
             res.json({
                 success: true,
-                data: {
-                    workouts,
-                    stats
-                }
+                data: exercises
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error retrieving daily workouts',
+                message: 'Error retrieving user exercises',
                 error: error.message
             });
         }
     }
 
-    // Update workout log
-    async updateWorkout(req, res) {
+    // Update exercise
+    async updateExercise(req, res) {
         try {
-            const workout = await WorkoutLog.findById(req.params.id);
-            if (!workout) {
+            const exercise = await Exercise.findById(req.params.id);
+
+            if (!exercise) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Workout log not found'
+                    message: 'Exercise not found'
                 });
             }
 
-            // Check if the workout belongs to the user
-            if (workout.user_id !== req.user.id) {
+            // Only allow updating user's own exercises
+            if (exercise.user_id !== req.user.id) {
                 return res.status(403).json({
                     success: false,
-                    message: 'Access denied'
+                    message: 'Cannot modify system or other users\' exercises'
                 });
             }
 
-            const result = await WorkoutLog.update(req.params.id, req.body);
+            const result = await Exercise.update(req.params.id, req.body);
             res.json({
                 success: true,
-                message: 'Workout log updated successfully',
+                message: 'Exercise updated successfully',
                 data: result.rows
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error updating workout log',
+                message: 'Error updating exercise',
                 error: error.message
             });
         }
     }
 
-    // Update workout status
-    async updateWorkoutStatus(req, res) {
+    // Delete exercise
+    async deleteExercise(req, res) {
         try {
-            if (!req.body.status) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Status is required'
-                });
-            }
+            const exercise = await Exercise.findById(req.params.id);
 
-            const workout = await WorkoutLog.findById(req.params.id);
-            if (!workout || workout.user_id !== req.user.id) {
+            if (!exercise) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Workout log not found'
+                    message: 'Exercise not found'
                 });
             }
 
-            await WorkoutLog.updateStatus(req.params.id, req.body.status);
+            // Only allow deleting user's own exercises
+            if (exercise.user_id !== req.user.id) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Cannot delete system or other users\' exercises'
+                });
+            }
+
+            await Exercise.delete(req.params.id);
             res.json({
                 success: true,
-                message: 'Workout status updated successfully'
+                message: 'Exercise deleted successfully'
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error updating workout status',
+                message: 'Error deleting exercise',
                 error: error.message
             });
         }
     }
 
-    // Delete workout log
-    async deleteWorkout(req, res) {
+    // Search exercises
+    async searchExercises(req, res) {
         try {
-            const workout = await WorkoutLog.findById(req.params.id);
-            if (!workout || workout.user_id !== req.user.id) {
+            const { query, type, equipment } = req.query;
+            const exercises = await Exercise.search(query, type, equipment, req.user.id);
+            res.json({
+                success: true,
+                data: exercises
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error searching exercises',
+                error: error.message
+            });
+        }
+    }
+
+    // Clone system exercise to user's custom exercises
+    async cloneExercise(req, res) {
+        try {
+            const exercise = await Exercise.findById(req.params.id);
+
+            if (!exercise) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Workout log not found'
+                    message: 'Exercise not found'
                 });
             }
 
-            await WorkoutLog.delete(req.params.id);
-            res.json({
+            // Create a new exercise based on the existing one
+            const clonedExercise = {
+                name: `${exercise.name} (Custom)`,
+                description: exercise.description,
+                equipment: exercise.equipment,
+                type: exercise.type,
+                sets: exercise.sets,
+                reps: exercise.reps,
+                duration: exercise.duration,
+                user_id: req.user.id
+            };
+
+            const result = await Exercise.create(clonedExercise);
+            res.status(201).json({
                 success: true,
-                message: 'Workout log deleted successfully'
+                message: 'Exercise cloned successfully',
+                data: result.rows
             });
         } catch (error) {
             res.status(500).json({
                 success: false,
-                message: 'Error deleting workout log',
-                error: error.message
-            });
-        }
-    }
-
-    // Get workout statistics
-    async getStats(req, res) {
-        try {
-            const { startDate, endDate } = req.query;
-            const totalTime = await WorkoutLog.calculateTotalTime(req.user.id);
-            let dailyStats = null;
-
-            if (startDate) {
-                dailyStats = await WorkoutLog.getDailyStats(req.user.id, startDate);
-            }
-
-            res.json({
-                success: true,
-                data: {
-                    totalTime,
-                    dailyStats
-                }
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving workout statistics',
+                message: 'Error cloning exercise',
                 error: error.message
             });
         }
     }
 }
 
-module.exports = new WorkoutLogController();
+module.exports = new ExerciseController();

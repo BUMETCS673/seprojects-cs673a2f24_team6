@@ -1,4 +1,3 @@
-// models/workoutPlan.model.js
 const { runsql } = require('../utils/SQL');
 
 class WorkoutPlan {
@@ -8,7 +7,7 @@ class WorkoutPlan {
             target_sets, target_reps, target_duration, frequency_type, 
             frequency_value, days_of_week, preferred_time, priority, status) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        
+
         const values = [
             planData.user_id,
             planData.exercise_id,
@@ -26,7 +25,7 @@ class WorkoutPlan {
             planData.priority,
             planData.status || 'active'
         ];
-        
+
         return await runsql(sql, values);
     }
 

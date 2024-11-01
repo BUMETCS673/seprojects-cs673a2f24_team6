@@ -1,9 +1,9 @@
 // routes/user.routes.js
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userAccount.controller');
-const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const userController = require('../controllers/UserAccountController');
+const auth = require('../utils/auth');
+const upload = require('../utils/upload');
 
 // Public routes
 router.post('/login', userController.login);

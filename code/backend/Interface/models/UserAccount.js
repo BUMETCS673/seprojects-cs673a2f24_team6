@@ -1,4 +1,3 @@
-// models/userAccount.model.js
 const { runsql } = require('../utils/SQL');
 const bcrypt = require('bcrypt');
 
@@ -46,12 +45,12 @@ class UserAccount {
         // Check if identifier is email or username
         const sql = 'SELECT * FROM user_account WHERE user_email = ? OR user_name = ?';
         const result = await runsql(sql, [identifier, identifier]);
-        
+
         if (result.rows.length === 0) return null;
-        
+
         const user = result.rows[0];
         const isValid = await bcrypt.compare(password, user.user_password);
-        
+
         return isValid ? user : null;
     }
 }

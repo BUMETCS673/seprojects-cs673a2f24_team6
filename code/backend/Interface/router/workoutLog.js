@@ -1,8 +1,8 @@
 // routes/workoutLog.routes.js
 const express = require('express');
 const router = express.Router();
-const workoutLogController = require('../controllers/workoutLog.controller');
-const auth = require('../middleware/auth');
+const workoutLogController = require('../controllers/WorkoutLogController');
+const auth = require('../utils/auth');
 
 // All routes require authentication
 router.use(auth);

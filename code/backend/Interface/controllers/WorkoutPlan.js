@@ -1,5 +1,5 @@
 // controllers/workoutPlan.controller.js
-const WorkoutPlan = require('../models/workoutPlan.model');
+const WorkoutPlan = require('../models/WorkoutPlan');
 
 class WorkoutPlanController {
     async createPlan(req, res) {
@@ -38,7 +38,7 @@ class WorkoutPlanController {
     async getPlan(req, res) {
         try {
             const plan = await WorkoutPlan.findById(req.params.id);
-            
+
             if (!plan) {
                 return res.status(404).json({
                     success: false,
@@ -102,7 +102,7 @@ class WorkoutPlanController {
     async updatePlan(req, res) {
         try {
             const plan = await WorkoutPlan.findById(req.params.id);
-            
+
             if (!plan || plan.user_id !== req.user.id) {
                 return res.status(404).json({
                     success: false,

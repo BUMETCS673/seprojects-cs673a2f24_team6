@@ -1,5 +1,5 @@
 // controllers/workoutLog.controller.js
-const WorkoutLog = require('../models/workoutLog.model');
+const WorkoutLog = require('../models/WorkoutLog');
 
 class WorkoutLogController {
     async createWorkout(req, res) {

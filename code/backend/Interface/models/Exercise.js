@@ -1,97 +1,147 @@
-// models/workoutLog.model.js
 const { runsql } = require('../utils/SQL');
 
-class WorkoutLog {
-    static async create(workoutData) {
-        const sql = `INSERT INTO workout_log 
-            (user_id, exercise_id, description, number_of_set, status, priority, start_time, end_time, total_time) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+class Exercise {
+    static async create(exerciseData) {
+        const sql = `INSERT INTO exercises 
+            (name, description, equipment, type, reps, sets, duration, user_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
         const values = [
-            workoutData.user_id,
-            workoutData.exercise_id,
-            workoutData.description,
-            workoutData.number_of_set,
-            workoutData.status || 'Todo',
-            workoutData.priority,
-            workoutData.start_time,
-            workoutData.end_time,
-            workoutData.total_time
+            exerciseData.name,
+            exerciseData.description,
+            exerciseData.equipment,
+            exerciseData.type,
+            exerciseData.reps,
+            exerciseData.sets,
+            exerciseData.duration,
+            exerciseData.user_id
         ];
+
         return await runsql(sql, values);
     }
 
-    static async findById(recordId) {
-        const sql = `
-            SELECT w.*, e.name as exercise_name, e.type as exercise_type
-            FROM workout_log w
-            JOIN exercises e ON w.exercise_id = e.exercise_id
-            WHERE w.record_id = ?`;
-        const result = await runsql(sql, [recordId]);
+    static async findById(exerciseId) {
+        const sql = 'SELECT * FROM exercises WHERE exercise_id = ?';
+        const result = await runsql(sql, [exerciseId]);
         return result.rows[0];
     }
 
-    static async findByUserId(userId) {
+    static async findAll(userId) {
+        // Get both system exercises (user_id is null) and user's custom exercises
         const sql = `
-            SELECT w.*, e.name as exercise_name, e.type as exercise_type
-            FROM workout_log w
-            JOIN exercises e ON w.exercise_id = e.exercise_id
-            WHERE w.user_id = ? 
-            ORDER BY w.priority DESC, w.start_time DESC`;
+            SELECT * FROM exercises 
+            WHERE user_id IS NULL OR user_id = ?
+            ORDER BY name ASC`;
         const result = await runsql(sql, [userId]);
         return result.rows;
     }
 
-    static async update(recordId, updateData) {
-        const sql = `UPDATE workout_log SET 
-            exercise_id = ?,
+    static async findByType(type, userId) {
+        const sql = `
+            SELECT * FROM exercises 
+            WHERE type = ? AND (user_id IS NULL OR user_id = ?)
+            ORDER BY name ASC`;
+        const result = await runsql(sql, [type, userId]);
+        return result.rows;
+    }
+
+    static async findByUserId(userId) {
+        // Get only user's custom exercises
+        const sql = `
+            SELECT * FROM exercises 
+            WHERE user_id = ?
+            ORDER BY name ASC`;
+        const result = await runsql(sql, [userId]);
+        return result.rows;
+    }
+
+    static async update(exerciseId, updateData) {
+        const sql = `UPDATE exercises SET 
+            name = ?,
             description = ?,
-            number_of_set = ?,
-            status = ?,
-            priority = ?,
-            start_time = ?,
-            end_time = ?,
-            total_time = ?
-            WHERE record_id = ?`;
+            equipment = ?,
+            type = ?,
+            reps = ?,
+            sets = ?,
+            duration = ?
+            WHERE exercise_id = ?`;
+
         const values = [
-            updateData.exercise_id,
+            updateData.name,
             updateData.description,
-            updateData.number_of_set,
-            updateData.status,
-            updateData.priority,
-            updateData.start_time,
-            updateData.end_time,
-            updateData.total_time,
-            recordId
+            updateData.equipment,
+            updateData.type,
+            updateData.reps,
+            updateData.sets,
+            updateData.duration,
+            exerciseId
         ];
+
         return await runsql(sql, values);
     }
 
-    static async updateStatus(recordId, status) {
-        const sql = 'UPDATE workout_log SET status = ? WHERE record_id = ?';
-        return await runsql(sql, [status, recordId]);
+    static async delete(exerciseId) {
+        const sql = 'DELETE FROM exercises WHERE exercise_id = ?';
+        return await runsql(sql, [exerciseId]);
     }
 
-    static async delete(recordId) {
-        const sql = 'DELETE FROM workout_log WHERE record_id = ?';
-        return await runsql(sql, [recordId]);
-    }
+    static async search(query, type, equipment, userId) {
+        let sql = `
+            SELECT * FROM exercises 
+            WHERE (user_id IS NULL OR user_id = ?)`;
 
-    static async findByStatus(userId, status) {
-        const sql = `
-            SELECT w.*, e.name as exercise_name, e.type as exercise_type
-            FROM workout_log w
-            JOIN exercises e ON w.exercise_id = e.exercise_id
-            WHERE w.user_id = ? AND w.status = ? 
-            ORDER BY w.priority DESC`;
-        const result = await runsql(sql, [userId, status]);
+        const values = [userId];
+
+        if (query) {
+            sql += ` AND (name LIKE ? OR description LIKE ?)`;
+            const searchTerm = `%${query}%`;
+            values.push(searchTerm, searchTerm);
+        }
+
+        if (type) {
+            sql += ` AND type = ?`;
+            values.push(type);
+        }
+
+        if (equipment) {
+            sql += ` AND equipment = ?`;
+            values.push(equipment);
+        }
+
+        sql += ` ORDER BY name ASC`;
+
+        const result = await runsql(sql, values);
         return result.rows;
     }
 
-    static async calculateTotalTime(userId) {
-        const sql = 'SELECT SUM(total_time) as total_time FROM workout_log WHERE user_id = ? AND status = "Done"';
-        const result = await runsql(sql, [userId]);
-        return result.rows[0].total_time || 0;
+    static async getTypes() {
+        const sql = `
+            SELECT DISTINCT type 
+            FROM exercises 
+            WHERE type IS NOT NULL 
+            ORDER BY type`;
+        const result = await runsql(sql);
+        return result.rows.map(row => row.type);
+    }
+
+    static async getEquipment() {
+        const sql = `
+            SELECT DISTINCT equipment 
+            FROM exercises 
+            WHERE equipment IS NOT NULL 
+            ORDER BY equipment`;
+        const result = await runsql(sql);
+        return result.rows.map(row => row.equipment);
+    }
+
+    static async validateExerciseOwnership(exerciseId, userId) {
+        const sql = `
+            SELECT COUNT(*) as count 
+            FROM exercises 
+            WHERE exercise_id = ? AND user_id = ?`;
+        const result = await runsql(sql, [exerciseId, userId]);
+        return result.rows[0].count > 0;
     }
 }
 
-module.exports = WorkoutLog;
+module.exports = Exercise;

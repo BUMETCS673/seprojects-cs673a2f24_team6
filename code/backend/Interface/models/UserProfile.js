@@ -1,4 +1,3 @@
-// models/userProfile.model.js
 const { runsql } = require('../utils/SQL');
 
 class UserProfile {
