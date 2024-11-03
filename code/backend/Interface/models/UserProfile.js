@@ -1,3 +1,4 @@
+const { getAvatar } = require('../controllers/UserProfileControllers');
 const SQL = require('../utils/SQL');
 
 updateProfile = (user_id, profileData) => {

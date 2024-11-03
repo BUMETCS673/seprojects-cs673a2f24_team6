@@ -1,4 +1,7 @@
 const UserProfile = require('../models/UserProfile')
+const path = require('path');
+const fs = require('fs');
+
 
 updateProfile = (req, res) => {
 
@@ -57,8 +60,21 @@ updateAvatar = (req, res) => {
 }
 
 getAvatar = (req, res) => {
+  const user_id = req.query.token;
 
-  res.status(200).json({"success":"getAvatar"});
+  const fileName = user_id + '.jpg';
+	const filePath = '../public/avatar';
+
+  let file = path.join(__dirname,filePath,fileName);
+
+  fs.access(file,fs.constants.F_OK, (err) => {
+
+		if(err){
+			return res.status(404).json({err:"no such file"});
+		}
+
+		res.sendFile(file);
+	})
 }
 
 module.exports = {updateProfile, updateAvatar, getProfile, getAvatar}
