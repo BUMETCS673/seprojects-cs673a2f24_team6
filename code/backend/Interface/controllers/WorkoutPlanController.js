@@ -1,208 +1,182 @@
-// controllers/workoutPlan.controller.js
-const WorkoutPlan = require('../models/WorkoutPlan');
+// controllers/WorkoutPlanController.js
+const WorkoutPlan = require('../models/WorkoutPlan')
 
-class WorkoutPlanController {
-    async createPlan(req, res) {
-        try {
-            // Validate required fields
-            const requiredFields = ['exercise_id', 'name', 'start_date', 'frequency_type', 'frequency_value'];
-            for (const field of requiredFields) {
-                if (!req.body[field]) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Missing required field: ${field}`
-                    });
+createPlan = (req, res) => {
+    // Validate required fields
+    const requiredFields = ['exercise_id', 'name', 'start_date', 'frequency_type', 'frequency_value'];
+    for (const field of requiredFields) {
+        if (!req.body[field]) {
+            return res.status(400).json({ err: `Missing required field: ${field}` });
+        }
+    }
+
+    const planData = {
+        ...req.body,
+        user_id: req.user.id
+    };
+
+    WorkoutPlan.create(planData)
+        .then(
+            (result) => {
+                console.log("success create plan");
+                res.status(200).json({
+                    msg: "Plan created successfully",
+                    data: result.rows
+                });
+            },
+            (err) => {
+                console.log("fail create plan");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+getPlan = (req, res) => {
+    WorkoutPlan.findPlanById(req.params.id)
+        .then(
+            (plan) => {
+                console.log("success get plan");
+                if (!plan) {
+                    return res.status(404).json({ err: "Plan not found" });
                 }
+                if (plan.user_id !== req.user.id) {
+                    return res.status(403).json({ err: "Access denied" });
+                }
+                res.status(200).json(plan);
+            },
+            (err) => {
+                console.log("fail get plan");
+                res.status(400).json({ err: err });
             }
+        );
+};
 
-            const planData = {
-                ...req.body,
-                user_id: req.user.id
-            };
+getUserPlans = (req, res) => {
+    WorkoutPlan.findPlansByUserId(req.user.id)
+        .then(
+            (plans) => {
+                console.log("success get user plans");
+                res.status(200).json(plans);
+            },
+            (err) => {
+                console.log("fail get user plans");
+                res.status(400).json({ err: err });
+            }
+        );
+};
 
-            const result = await WorkoutPlan.create(planData);
-            res.status(201).json({
-                success: true,
-                message: 'Workout plan created successfully',
-                data: result.rows
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error creating workout plan',
-                error: error.message
-            });
-        }
+getActivePlans = (req, res) => {
+    const date = req.query.date || new Date().toISOString().split('T')[0];
+
+    WorkoutPlan.findActivePlans(req.user.id, date)
+        .then(
+            (plans) => {
+                console.log("success get active plans");
+                res.status(200).json(plans);
+            },
+            (err) => {
+                console.log("fail get active plans");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+updatePlan = (req, res) => {
+    WorkoutPlan.findPlanById(req.params.id)
+        .then(
+            (plan) => {
+                if (!plan || plan.user_id !== req.user.id) {
+                    return res.status(404).json({ err: "Plan not found" });
+                }
+                return WorkoutPlan.update(req.params.id, req.body);
+            }
+        )
+        .then(
+            (result) => {
+                console.log("success update plan");
+                res.status(200).json({ msg: "Plan updated successfully" });
+            },
+            (err) => {
+                console.log("fail update plan");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+updatePlanStatus = (req, res) => {
+    if (!req.body.status) {
+        return res.status(400).json({ err: "Status is required" });
     }
 
-    async getPlan(req, res) {
-        try {
-            const plan = await WorkoutPlan.findById(req.params.id);
-
-            if (!plan) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout plan not found'
-                });
+    WorkoutPlan.findPlanById(req.params.id)
+        .then(
+            (plan) => {
+                if (!plan || plan.user_id !== req.user.id) {
+                    return res.status(404).json({ err: "Plan not found" });
+                }
+                return WorkoutPlan.updateStatus(req.params.id, req.body.status);
             }
-
-            if (plan.user_id !== req.user.id) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Access denied'
-                });
+        )
+        .then(
+            (result) => {
+                console.log("success update plan status");
+                res.status(200).json({ msg: "Plan status updated successfully" });
+            },
+            (err) => {
+                console.log("fail update plan status");
+                res.status(400).json({ err: err });
             }
+        );
+};
 
-            res.json({
-                success: true,
-                data: plan
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving workout plan',
-                error: error.message
-            });
-        }
+deletePlan = (req, res) => {
+    WorkoutPlan.findPlanById(req.params.id)
+        .then(
+            (plan) => {
+                if (!plan || plan.user_id !== req.user.id) {
+                    return res.status(404).json({ err: "Plan not found" });
+                }
+                return WorkoutPlan.delete(req.params.id);
+            }
+        )
+        .then(
+            (result) => {
+                console.log("success delete plan");
+                res.status(200).json({ msg: "Plan deleted successfully" });
+            },
+            (err) => {
+                console.log("fail delete plan");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+getPlansByFrequency = (req, res) => {
+    const { frequency_type } = req.params;
+    if (!['daily', 'weekly', 'monthly', 'custom'].includes(frequency_type)) {
+        return res.status(400).json({ err: "Invalid frequency type" });
     }
 
-    async getUserPlans(req, res) {
-        try {
-            const plans = await WorkoutPlan.findByUserId(req.user.id);
-            res.json({
-                success: true,
-                data: plans
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving workout plans',
-                error: error.message
-            });
-        }
-    }
-
-    async getActivePlans(req, res) {
-        try {
-            const date = req.query.date || new Date().toISOString().split('T')[0];
-            const plans = await WorkoutPlan.findActiveByDate(req.user.id, date);
-            res.json({
-                success: true,
-                data: plans
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving active plans',
-                error: error.message
-            });
-        }
-    }
-
-    async updatePlan(req, res) {
-        try {
-            const plan = await WorkoutPlan.findById(req.params.id);
-
-            if (!plan || plan.user_id !== req.user.id) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout plan not found'
-                });
+    WorkoutPlan.findPlansByFrequency(req.user.id, frequency_type)
+        .then(
+            (plans) => {
+                console.log("success get plans by frequency");
+                res.status(200).json(plans);
+            },
+            (err) => {
+                console.log("fail get plans by frequency");
+                res.status(400).json({ err: err });
             }
+        );
+};
 
-            const result = await WorkoutPlan.update(req.params.id, req.body);
-            res.json({
-                success: true,
-                message: 'Workout plan updated successfully',
-                data: result.rows
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error updating workout plan',
-                error: error.message
-            });
-        }
-    }
-
-    async updatePlanStatus(req, res) {
-        try {
-            if (!req.body.status) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Status is required'
-                });
-            }
-
-            const plan = await WorkoutPlan.findById(req.params.id);
-            if (!plan || plan.user_id !== req.user.id) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout plan not found'
-                });
-            }
-
-            await WorkoutPlan.updateStatus(req.params.id, req.body.status);
-            res.json({
-                success: true,
-                message: 'Workout plan status updated successfully'
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error updating workout plan status',
-                error: error.message
-            });
-        }
-    }
-
-    async deletePlan(req, res) {
-        try {
-            const plan = await WorkoutPlan.findById(req.params.id);
-            if (!plan || plan.user_id !== req.user.id) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout plan not found'
-                });
-            }
-
-            await WorkoutPlan.delete(req.params.id);
-            res.json({
-                success: true,
-                message: 'Workout plan deleted successfully'
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error deleting workout plan',
-                error: error.message
-            });
-        }
-    }
-
-    async getPlansByFrequency(req, res) {
-        try {
-            const { frequency_type } = req.params;
-            if (!['daily', 'weekly', 'monthly', 'custom'].includes(frequency_type)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Invalid frequency type'
-                });
-            }
-
-            const plans = await WorkoutPlan.findByFrequency(req.user.id, frequency_type);
-            res.json({
-                success: true,
-                data: plans
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving plans by frequency',
-                error: error.message
-            });
-        }
-    }
-}
-
-module.exports = new WorkoutPlanController();
+module.exports = {
+    createPlan,
+    getPlan,
+    getUserPlans,
+    getActivePlans,
+    updatePlan,
+    updatePlanStatus,
+    deletePlan,
+    getPlansByFrequency
+};

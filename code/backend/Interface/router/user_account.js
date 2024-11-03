@@ -1,4 +1,4 @@
-// routes/user.routes.js
+// router/user_account.js
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/UserAccountController');
@@ -7,13 +7,16 @@ const upload = require('../utils/upload');
 
 // Public routes
 router.post('/login', userController.login);
-router.post('/register', userController.register);
-router.post('/refresh-token', userController.refreshToken);
+router.post('/register', userController.create);
 
 // Protected routes
-router.get('/me', auth, userController.getBasicInfo);
-router.get('/profile', auth, userController.getProfile);
-router.put('/profile', auth, userController.updateProfile);
-router.patch('/profile/avatar', auth, upload.uploadSingle('avatar'), userController.updateAvatar);
+router.use(auth);
+
+// Profile routes
+router.get('/profile', userController.getProfile);
+router.put('/profile', userController.updateProfile);
+
+// Avatar upload route
+router.post('/avatar', upload.uploadSingle('avatar'), userController.updateAvatar);
 
 module.exports = router;

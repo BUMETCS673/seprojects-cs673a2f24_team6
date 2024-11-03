@@ -14,40 +14,33 @@ const ALLOWED_FILE_TYPES = {
 // Maximum file size (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Create base uploads directory
+const createUploadDir = (type) => {
+    const uploadDir = path.join(__dirname, `../public/uploads/${type}`);
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    return uploadDir;
+};
 
 // Configure storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        // Create year/month directories for better organization
-        const now = new Date();
-        const targetDir = path.join(
-            uploadDir,
-            now.getFullYear().toString(),
-            (now.getMonth() + 1).toString().padStart(2, '0')
-        );
-
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(targetDir)) {
-            fs.mkdirSync(targetDir, { recursive: true });
+configureStorage = (type) => {
+    return multer.diskStorage({
+        destination: (req, file, cb) => {
+            const uploadDir = createUploadDir(type);
+            cb(null, uploadDir);
+        },
+        filename: (req, file, cb) => {
+            const userId = req.user.id;
+            const timestamp = Date.now();
+            const ext = ALLOWED_FILE_TYPES[file.mimetype];
+            cb(null, `${type}_${userId}_${timestamp}.${ext}`);
         }
+    });
+};
 
-        cb(null, targetDir);
-    },
-    filename: function (req, file, cb) {
-        // Generate unique filename with timestamp and random string
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = ALLOWED_FILE_TYPES[file.mimetype];
-        cb(null, `${file.fieldname}-${uniqueSuffix}.${ext}`);
-    }
-});
-
-// File filter function
-const fileFilter = (req, file, cb) => {
+// File filter
+fileFilter = (req, file, cb) => {
     if (ALLOWED_FILE_TYPES[file.mimetype]) {
         cb(null, true);
     } else {
@@ -55,70 +48,44 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-// Create multer instance
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: MAX_FILE_SIZE
-    }
-});
+// Create upload middleware
+createUploader = (type) => {
+    return multer({
+        storage: configureStorage(type),
+        fileFilter: fileFilter,
+        limits: {
+            fileSize: MAX_FILE_SIZE
+        }
+    }).single(type);
+};
 
-// Error handler middleware
-const handleUploadError = (err, req, res, next) => {
+// Delete old file
+deleteFile = (filePath) => {
+    if (filePath && fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+            if (err) console.error('Error deleting file:', err);
+        });
+    }
+};
+
+// Handle upload errors
+handleUploadError = (err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({
-                success: false,
-                message: `File size too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB`
+                err: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB`
             });
         }
-        return res.status(400).json({
-            success: false,
-            message: 'File upload error',
-            error: err.message
-        });
+        return res.status(400).json({ err: err.message });
     }
     if (err) {
-        return res.status(400).json({
-            success: false,
-            message: err.message
-        });
+        return res.status(400).json({ err: err.message });
     }
     next();
 };
 
-// Function to delete file
-const deleteFile = async (filePath) => {
-    try {
-        if (fs.existsSync(filePath)) {
-            await fs.promises.unlink(filePath);
-        }
-    } catch (error) {
-        console.error('Error deleting file:', error);
-    }
-};
-
-// Create an upload middleware that includes error handling
-const createUploadMiddleware = (fieldName, maxCount = 1) => {
-    return [
-        upload.array(fieldName, maxCount),
-        handleUploadError,
-        (req, res, next) => {
-            // Add file URLs to request
-            if (req.files) {
-                req.fileUrls = req.files.map(file => 
-                    `/uploads/${path.relative(uploadDir, file.path)}`
-                );
-            }
-            next();
-        }
-    ];
-};
-
 module.exports = {
-    uploadSingle: (fieldName) => createUploadMiddleware(fieldName, 1),
-    uploadMultiple: (fieldName, maxCount) => createUploadMiddleware(fieldName, maxCount),
+    uploadSingle: (type) => [createUploader(type), handleUploadError],
     deleteFile,
     ALLOWED_FILE_TYPES,
     MAX_FILE_SIZE

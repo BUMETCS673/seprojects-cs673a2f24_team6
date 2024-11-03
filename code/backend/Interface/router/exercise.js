@@ -1,4 +1,4 @@
-// routes/exercise.routes.js
+// router/exercise.js
 const express = require('express');
 const router = express.Router();
 const exerciseController = require('../controllers/ExerciseController');
@@ -6,37 +6,37 @@ const auth = require('../utils/auth');
 const { validateExercise } = require('../utils/exerciseValidation');
 
 // Public routes
-router.get('/types', exerciseController.getExerciseTypes);
+router.get('/types', exerciseController.getTypes);            // Changed from getExerciseTypes
 router.get('/equipment', exerciseController.getEquipmentList);
 
 // Protected routes
 router.use(auth);
 
 // Create new exercise
-router.post('/', validateExercise, exerciseController.createExercise);
+router.post('/', validateExercise, exerciseController.create);  // Changed from createExercise
 
-// Get all exercises (system + user's)
-router.get('/', exerciseController.getAllExercises);
+// Get all exercises
+router.get('/', exerciseController.getAll);                    // Changed from getAllExercises
 
 // Search exercises
-router.get('/search', exerciseController.searchExercises);
+router.get('/search', exerciseController.search);              // Changed from searchExercises
 
 // Get exercises by type
-router.get('/type/:type', exerciseController.getExercisesByType);
+router.get('/type/:type', exerciseController.getByType);      // Changed from getExercisesByType
 
 // Get user's custom exercises
 router.get('/custom', exerciseController.getUserExercises);
 
-// Clone system exercise to user's custom exercises
-router.post('/:id/clone', exerciseController.cloneExercise);
-
 // Get specific exercise
 router.get('/:id', exerciseController.getExercise);
 
-// Update exercise (only user's custom exercises)
-router.put('/:id', validateExercise, exerciseController.updateExercise);
+// Update exercise
+router.put('/:id', validateExercise, exerciseController.update); // Changed from updateExercise
 
-// Delete exercise (only user's custom exercises)
-router.delete('/:id', exerciseController.deleteExercise);
+// Delete exercise
+router.delete('/:id', exerciseController.remove);              // Changed from deleteExercise
+
+// Clone exercise
+router.post('/:id/clone', exerciseController.clone);          // Changed from cloneExercise
 
 module.exports = router;

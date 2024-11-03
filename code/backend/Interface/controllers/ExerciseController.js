@@ -1,283 +1,230 @@
-// controllers/exercise.controller.js
-const Exercise = require('../models/Exercise');
+// controllers/ExerciseController.js
+const Exercise = require('../models/Exercise')
 
-class ExerciseController {
-    // Create new exercise
-    async createExercise(req, res) {
-        try {
-            // Validate required fields
-            const requiredFields = ['name', 'type'];
-            for (const field of requiredFields) {
-                if (!req.body[field]) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Missing required field: ${field}`
-                    });
+create = (req, res) => {
+    const { name, type } = req.body;
+    
+    if (!name || !type) {
+        return res.status(400).json({ err: "Missing required fields" });
+    }
+
+    Exercise.create({
+        ...req.body,
+        user_id: req.body.is_system ? null : req.user.id
+    })
+    .then(
+        (result) => {
+            console.log("success create exercise");
+            res.status(200).json({
+                msg: "Exercise created successfully",
+                data: result.rows
+            });
+        },
+        (err) => {
+            console.log("fail create exercise");
+            res.status(400).json({ err: err });
+        }
+    );
+};
+
+getTypes = (req, res) => {
+    Exercise.getTypes()
+        .then(
+            (types) => {
+                console.log("success get types");
+                res.status(200).json(types);
+            },
+            (err) => {
+                console.log("fail get types");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+getEquipmentList = (req, res) => {
+    Exercise.getEquipmentList()
+        .then(
+            (equipment) => {
+                console.log("success get equipment");
+                res.status(200).json(equipment);
+            },
+            (err) => {
+                console.log("fail get equipment");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+getExercise = (req, res) => {
+    Exercise.findById(req.params.id)
+        .then(
+            (exercise) => {
+                console.log("success get exercise");
+                if (!exercise) {
+                    return res.status(404).json({ err: "Exercise not found" });
                 }
+                res.status(200).json(exercise);
+            },
+            (err) => {
+                console.log("fail get exercise");
+                res.status(400).json({ err: err });
             }
+        );
+};
 
-            // Add user_id for custom exercises, null for system exercises
-            const exerciseData = {
-                ...req.body,
-                user_id: req.body.is_system ? null : req.user.id
-            };
+getAll = (req, res) => {
+    Exercise.findAll(req.user.id)
+        .then(
+            (exercises) => {
+                console.log("success get all exercises");
+                res.status(200).json(exercises);
+            },
+            (err) => {
+                console.log("fail get all exercises");
+                res.status(400).json({ err: err });
+            }
+        );
+};
 
-            const result = await Exercise.create(exerciseData);
-            res.status(201).json({
-                success: true,
-                message: 'Exercise created successfully',
-                data: result.rows
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error creating exercise',
-                error: error.message
-            });
-        }
-    }
+search = (req, res) => {
+    Exercise.search(req.query.q, req.query.type, req.query.equipment, req.user.id)
+        .then(
+            (exercises) => {
+                console.log("success search exercises");
+                res.status(200).json(exercises);
+            },
+            (err) => {
+                console.log("fail search exercises");
+                res.status(400).json({ err: err });
+            }
+        );
+};
 
-    // Get all exercise types
-    async getExerciseTypes(req, res) {
-        try {
-            const types = await Exercise.getTypes();
-            res.json({
-                success: true,
-                data: types
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving exercise types',
-                error: error.message
-            });
-        }
-    }
+getByType = (req, res) => {
+    Exercise.findByType(req.params.type, req.user.id)
+        .then(
+            (exercises) => {
+                console.log("success get exercises by type");
+                res.status(200).json(exercises);
+            },
+            (err) => {
+                console.log("fail get exercises by type");
+                res.status(400).json({ err: err });
+            }
+        );
+};
 
-    // Get all equipment options
-    async getEquipmentList(req, res) {
-        try {
-            const equipment = await Exercise.getEquipment();
-            res.json({
-                success: true,
-                data: equipment
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving equipment list',
-                error: error.message
-            });
-        }
-    }
-    // Get a specific exercise
-    async getExercise(req, res) {
-        try {
-            const exercise = await Exercise.findById(req.params.id);
-            if (!exercise) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Exercise not found'
+getUserExercises = (req, res) => {
+    Exercise.findByUserId(req.user.id)
+        .then(
+            (exercises) => {
+                console.log("success get user exercises");
+                res.status(200).json(exercises);
+            },
+            (err) => {
+                console.log("fail get user exercises");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+update = (req, res) => {
+    Exercise.findById(req.params.id)
+        .then(
+            (exercise) => {
+                if (!exercise) {
+                    return res.status(404).json({ err: "Exercise not found" });
+                }
+                if (exercise.user_id !== req.user.id) {
+                    return res.status(403).json({ err: "Cannot modify system exercises" });
+                }
+                return Exercise.update(req.params.id, req.body);
+            }
+        )
+        .then(
+            (result) => {
+                console.log("success update exercise");
+                res.status(200).json({ msg: "Exercise updated successfully" });
+            },
+            (err) => {
+                console.log("fail update exercise");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+remove = (req, res) => {
+    Exercise.findById(req.params.id)
+        .then(
+            (exercise) => {
+                if (!exercise) {
+                    return res.status(404).json({ err: "Exercise not found" });
+                }
+                if (exercise.user_id !== req.user.id) {
+                    return res.status(403).json({ err: "Cannot delete system exercises" });
+                }
+                return Exercise.delete(req.params.id);
+            }
+        )
+        .then(
+            (result) => {
+                console.log("success delete exercise");
+                res.status(200).json({ msg: "Exercise deleted successfully" });
+            },
+            (err) => {
+                console.log("fail delete exercise");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+clone = (req, res) => {
+    Exercise.findById(req.params.id)
+        .then(
+            (exercise) => {
+                if (!exercise) {
+                    return res.status(404).json({ err: "Exercise not found" });
+                }
+
+                const clonedExercise = {
+                    name: `${exercise.name} (Custom)`,
+                    description: exercise.description,
+                    equipment: exercise.equipment,
+                    type: exercise.type,
+                    reps: exercise.reps,
+                    sets: exercise.sets,
+                    duration: exercise.duration,
+                    user_id: req.user.id
+                };
+
+                return Exercise.create(clonedExercise);
+            }
+        )
+        .then(
+            (result) => {
+                console.log("success clone exercise");
+                res.status(200).json({
+                    msg: "Exercise cloned successfully",
+                    data: result.rows
                 });
+            },
+            (err) => {
+                console.log("fail clone exercise");
+                res.status(400).json({ err: err });
             }
+        );
+};
 
-            // If it's a user-created exercise, check ownership
-            if (exercise.user_id && exercise.user_id !== req.user.id) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Access denied'
-                });
-            }
-
-            res.json({
-                success: true,
-                data: exercise
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving exercise',
-                error: error.message
-            });
-        }
-    }
-
-    // Get all exercises (including system exercises and user's custom exercises)
-    async getAllExercises(req, res) {
-        try {
-            const exercises = await Exercise.findAll(req.user.id);
-            res.json({
-                success: true,
-                data: exercises
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving exercises',
-                error: error.message
-            });
-        }
-    }
-
-    // Get exercises by type
-    async getExercisesByType(req, res) {
-        try {
-            const exercises = await Exercise.findByType(req.params.type, req.user.id);
-            res.json({
-                success: true,
-                data: exercises
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving exercises by type',
-                error: error.message
-            });
-        }
-    }
-
-    // Get user's custom exercises
-    async getUserExercises(req, res) {
-        try {
-            const exercises = await Exercise.findByUserId(req.user.id);
-            res.json({
-                success: true,
-                data: exercises
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving user exercises',
-                error: error.message
-            });
-        }
-    }
-
-    // Update exercise
-    async updateExercise(req, res) {
-        try {
-            const exercise = await Exercise.findById(req.params.id);
-
-            if (!exercise) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Exercise not found'
-                });
-            }
-
-            // Only allow updating user's own exercises
-            if (exercise.user_id !== req.user.id) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Cannot modify system or other users\' exercises'
-                });
-            }
-
-            const result = await Exercise.update(req.params.id, req.body);
-            res.json({
-                success: true,
-                message: 'Exercise updated successfully',
-                data: result.rows
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error updating exercise',
-                error: error.message
-            });
-        }
-    }
-
-    // Delete exercise
-    async deleteExercise(req, res) {
-        try {
-            const exercise = await Exercise.findById(req.params.id);
-
-            if (!exercise) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Exercise not found'
-                });
-            }
-
-            // Only allow deleting user's own exercises
-            if (exercise.user_id !== req.user.id) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Cannot delete system or other users\' exercises'
-                });
-            }
-
-            await Exercise.delete(req.params.id);
-            res.json({
-                success: true,
-                message: 'Exercise deleted successfully'
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error deleting exercise',
-                error: error.message
-            });
-        }
-    }
-
-    // Search exercises
-    async searchExercises(req, res) {
-        try {
-            const { query, type, equipment } = req.query;
-            const exercises = await Exercise.search(query, type, equipment, req.user.id);
-            res.json({
-                success: true,
-                data: exercises
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error searching exercises',
-                error: error.message
-            });
-        }
-    }
-
-    // Clone system exercise to user's custom exercises
-    async cloneExercise(req, res) {
-        try {
-            const exercise = await Exercise.findById(req.params.id);
-
-            if (!exercise) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Exercise not found'
-                });
-            }
-
-            // Create a new exercise based on the existing one
-            const clonedExercise = {
-                name: `${exercise.name} (Custom)`,
-                description: exercise.description,
-                equipment: exercise.equipment,
-                type: exercise.type,
-                sets: exercise.sets,
-                reps: exercise.reps,
-                duration: exercise.duration,
-                user_id: req.user.id
-            };
-
-            const result = await Exercise.create(clonedExercise);
-            res.status(201).json({
-                success: true,
-                message: 'Exercise cloned successfully',
-                data: result.rows
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error cloning exercise',
-                error: error.message
-            });
-        }
-    }
-}
-
-module.exports = new ExerciseController();
+module.exports = {
+    create,
+    getTypes,
+    getEquipmentList,
+    getExercise,
+    getAll,
+    search,
+    getByType,
+    getUserExercises,
+    update,
+    remove,
+    clone
+};

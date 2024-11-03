@@ -1,159 +1,134 @@
-// controllers/workoutLog.controller.js
-const WorkoutLog = require('../models/WorkoutLog');
+// controllers/WorkoutLogController.js
+const WorkoutLog = require('../models/WorkoutLog')
 
-class WorkoutLogController {
-    async createWorkout(req, res) {
-        try {
-            const result = await WorkoutLog.create(req.body);
-            res.status(201).json({
-                success: true,
-                message: 'Workout log created successfully',
-                data: result.rows
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error creating workout log',
-                error: error.message
-            });
-        }
-    }
+createWorkout = (req, res) => {
+    const workoutData = {
+        ...req.body,
+        user_id: req.user.id
+    };
 
-    async getWorkout(req, res) {
-        try {
-            const workout = await WorkoutLog.findById(req.params.id);
-            if (!workout) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout log not found'
+    WorkoutLog.create(workoutData)
+        .then(
+            (result) => {
+                console.log("success create workout");
+                res.status(200).json({
+                    msg: "Workout created successfully",
+                    data: result.rows
                 });
+            },
+            (err) => {
+                console.log("fail create workout");
+                res.status(400).json({ err: err });
             }
-            res.json({
-                success: true,
-                data: workout
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving workout log',
-                error: error.message
-            });
-        }
-    }
+        );
+};
 
-    async getUserWorkouts(req, res) {
-        try {
-            const workouts = await WorkoutLog.findByUserId(req.params.userId);
-            res.json({
-                success: true,
-                data: workouts
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving user workouts',
-                error: error.message
-            });
-        }
-    }
-
-    async updateWorkout(req, res) {
-        try {
-            const result = await WorkoutLog.update(req.params.id, req.body);
-            if (result.rows.affectedRows === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout log not found'
-                });
+getWorkout = (req, res) => {
+    WorkoutLog.findWorkoutById(req.params.id)
+        .then(
+            (workout) => {
+                console.log("success get workout");
+                if (!workout) {
+                    return res.status(404).json({ err: "Workout not found" });
+                }
+                res.status(200).json(workout);
+            },
+            (err) => {
+                console.log("fail get workout");
+                res.status(400).json({ err: err });
             }
-            res.json({
-                success: true,
-                message: 'Workout log updated successfully'
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error updating workout log',
-                error: error.message
-            });
-        }
-    }
+        );
+};
 
-    async updateWorkoutStatus(req, res) {
-        try {
-            const result = await WorkoutLog.updateStatus(req.params.id, req.body.status);
-            if (result.rows.affectedRows === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout log not found'
-                });
+getUserWorkouts = (req, res) => {
+    WorkoutLog.findWorkoutsByUserId(req.params.userId)
+        .then(
+            (workouts) => {
+                console.log("success get user workouts");
+                res.status(200).json(workouts);
+            },
+            (err) => {
+                console.log("fail get user workouts");
+                res.status(400).json({ err: err });
             }
-            res.json({
-                success: true,
-                message: 'Workout status updated successfully'
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error updating workout status',
-                error: error.message
-            });
-        }
-    }
+        );
+};
 
-    async deleteWorkout(req, res) {
-        try {
-            const result = await WorkoutLog.delete(req.params.id);
-            if (result.rows.affectedRows === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Workout log not found'
-                });
+updateWorkout = (req, res) => {
+    WorkoutLog.update(req.params.id, req.body)
+        .then(
+            (result) => {
+                console.log("success update workout");
+                if (result.rows.affectedRows === 0) {
+                    return res.status(404).json({ err: "Workout not found" });
+                }
+                res.status(200).json({ msg: "Workout updated successfully" });
+            },
+            (err) => {
+                console.log("fail update workout");
+                res.status(400).json({ err: err });
             }
-            res.json({
-                success: true,
-                message: 'Workout log deleted successfully'
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error deleting workout log',
-                error: error.message
-            });
-        }
+        );
+};
+
+updateWorkoutStatus = (req, res) => {
+    if (!req.body.status) {
+        return res.status(400).json({ err: "Status is required" });
     }
 
-    async getWorkoutsByStatus(req, res) {
-        try {
-            const workouts = await WorkoutLog.findByStatus(req.params.userId, req.params.status);
-            res.json({
-                success: true,
-                data: workouts
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error retrieving workouts by status',
-                error: error.message
-            });
-        }
-    }
+    WorkoutLog.updateStatus(req.params.id, req.body.status)
+        .then(
+            (result) => {
+                console.log("success update workout status");
+                if (result.rows.affectedRows === 0) {
+                    return res.status(404).json({ err: "Workout not found" });
+                }
+                res.status(200).json({ msg: "Status updated successfully" });
+            },
+            (err) => {
+                console.log("fail update workout status");
+                res.status(400).json({ err: err });
+            }
+        );
+};
 
-    async getTotalWorkoutTime(req, res) {
-        try {
-            const totalTime = await WorkoutLog.calculateTotalTime(req.params.userId);
-            res.json({
-                success: true,
-                data: { totalTime }
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: 'Error calculating total workout time',
-                error: error.message
-            });
-        }
-    }
-}
+deleteWorkout = (req, res) => {
+    WorkoutLog.delete(req.params.id)
+        .then(
+            (result) => {
+                console.log("success delete workout");
+                if (result.rows.affectedRows === 0) {
+                    return res.status(404).json({ err: "Workout not found" });
+                }
+                res.status(200).json({ msg: "Workout deleted successfully" });
+            },
+            (err) => {
+                console.log("fail delete workout");
+                res.status(400).json({ err: err });
+            }
+        );
+};
 
-module.exports = new WorkoutLogController();
+getWorkoutsByStatus = (req, res) => {
+    WorkoutLog.findWorkoutsByStatus(req.params.userId, req.params.status)
+        .then(
+            (workouts) => {
+                console.log("success get workouts by status");
+                res.status(200).json(workouts);
+            },
+            (err) => {
+                console.log("fail get workouts by status");
+                res.status(400).json({ err: err });
+            }
+        );
+};
+
+module.exports = {
+    createWorkout,
+    getWorkout,
+    getUserWorkouts,
+    updateWorkout,
+    updateWorkoutStatus,
+    deleteWorkout,
+    getWorkoutsByStatus
+};

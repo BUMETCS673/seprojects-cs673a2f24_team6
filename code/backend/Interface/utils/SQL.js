@@ -1,116 +1,110 @@
+// utils/SQL.js
 const mysql = require('mysql2');
-const config = require('../config/database.json')
+const config = require('../config/database.json');
 
-// create the connection to database
-let pool = mysql.createPool(config.connection);
+// Create initial pool without database
+let pool = mysql.createPool({
+    ...config.connection,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
-async function runsql(sql,value){
-    
-    return new Promise((resolve, reject)=>{
-      pool.getConnection((err,connection)=>{
-        if(err){
-          connection.release();
-          reject(err);
-        } 
-        connection.query(sql,value,(err,rows)=>{
-          connection.release();
-          if(err) reject(err);
-          resolve({rows:rows});
-        })
-      })
-      // con.query(sql, (err, result) =>{
-      //   if(err) reject('err');
-      //   resolve(result);
-      // })
-    })
-}
-
-function creatTable(){
-  const tables = [];
-  const alter = [];
-
-  config.tables.forEach(
-    (table)=>{
-      tables.push(runsql(table[0]));
-    }
-  )
-  
-  
-
-  Promise.all(tables).then((res)=>{
-      console.log(res)
-      
-      config.tables.forEach(
-        (table)=>{
-          if(table.length > 1){
-            for(i=1;i<table.length;i++){
-              alter.push(runsql(table[i]));
+runsql = (sql, value) => {
+    return new Promise((resolve, reject) => {
+        pool.getConnection((err, connection) => {
+            if (err) {
+                console.log("fail get connection", err);
+                return reject(err);
             }
-          }
-        }
-      )
-      
-      Promise.all(alter).then((res)=>{
-          console.log("successful creat table and alter")
-      }).catch((err)=>{
-          console.log("creat table success, but add alter fail")
-          console.log(err)
-      })
-  }).catch((err)=>{
-      console.log("creat table fail");
-      console.log(err);
-  })
+            
+            connection.query(sql, value, (err, rows) => {
+                connection.release();
+                if (err) {
+                    console.log("fail run sql", err);
+                    return reject(err);
+                }
+                resolve({ rows });
+            });
+        });
+    });
+};
 
+createDatabase = () => {
+    return new Promise((resolve, reject) => {
+        pool.query(`CREATE DATABASE IF NOT EXISTS ${config.database}`, (err) => {
+            if (err) {
+                console.log("fail create database", err);
+                return reject(err);
+            }
+            
+            // Recreate pool with database selected
+            pool = mysql.createPool({
+                ...config.connection,
+                database: config.database,
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0
+            });
+            
+            resolve();
+        });
+    });
+};
 
-}
+createTables = () => {
+    const promises = config.tables.map(table => {
+        // Execute each statement in the table array sequentially
+        return table.reduce((promise, statement) => {
+            return promise.then(() => runsql(statement));
+        }, Promise.resolve());
+    });
 
-function checkTable(){
-  config.table_name.forEach((table)=>{
-    var sql = "show tables like '" + table + "';";
-    runsql(sql).then((res)=>{
-      console.log(res.rows)
-      if(res.rows.length > 0){
-        console.log("table " + table + " pass check");
-      }else{
-        console.log("table " + table + " not pass check");
-        creatTable();
-      }
-    },(err)=>{
-      console.log(err);
-    })
-  })
-  
-}
+    return Promise.all(promises);
+};
 
-pool.getConnection((err,connection)=>{
-    if(err){
-      // connection.release();
-      console.log("fail to connect")
-    } 
-    connection.query("USE "+config.database,(err,res)=>{
-      connection.release();
-      if(err){
-        runsql("CREATE DATABASE "+config.database).then((res)=>{
-            console.log("creat database success");
-            let newconnect = config.connection;
-            newconnect.database = config.database;
-            const connection = newconnect;
-            pool = mysql.createPool(connection);
-            creatTable();
-        },(err)=>{
-            console.log("creat database fail");
-        })
-      }
-      if(res){
-        console.log("use database "+config.database);
-        let newconnect = config.connection;
-        newconnect.database = config.database;
-        const connection = newconnect;
-        pool = mysql.createPool(connection);
-        checkTable();
-      }
-    })
-})
+initializeDatabase = () => {
+    console.log("Initializing database...");
+    return createDatabase()
+        .then(() => createTables())
+        .then(
+            () => {
+                console.log("Database initialization completed");
+            },
+            (err) => {
+                console.log("Database initialization failed", err);
+                throw err;
+            }
+        );
+};
 
-// export the executeQuery function so other code can use it
+// Start initialization with retry mechanism
+const initWithRetry = (maxAttempts = 5, delay = 5000) => {
+    let attempt = 0;
+
+    const tryInit = () => {
+        attempt++;
+        console.log(`Attempt ${attempt} to initialize database...`);
+
+        return initializeDatabase()
+            .catch(err => {
+                if (attempt >= maxAttempts) {
+                    throw err;
+                }
+                console.log(`Attempt ${attempt} failed, retrying in ${delay/1000} seconds...`);
+                return new Promise(resolve => setTimeout(resolve, delay))
+                    .then(() => tryInit());
+            });
+    };
+
+    return tryInit();
+};
+
+// Start initialization
+initWithRetry()
+    .catch(err => {
+        console.error('Database initialization failed after all attempts:', err);
+        process.exit(1);
+    });
+
 module.exports = { runsql };
