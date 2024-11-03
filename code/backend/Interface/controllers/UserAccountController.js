@@ -38,10 +38,10 @@ create = (req, res) => {
 
 login = (req,res) => {
 
-  const { email, username, password } = req.body;
+  const { email, name, password } = req.query;
 
   // Validate input
-  if((!email && !username) || !password){
+  if((!email && !name) || !password){
     res.status(400).json({err:"missing not null value"});
   }
 
@@ -50,7 +50,7 @@ login = (req,res) => {
   let type = ''
   if(!email){
     type = 'username';
-    identifier = username;
+    identifier = name;
   }else{
     type = 'email';
     identifier = email;
