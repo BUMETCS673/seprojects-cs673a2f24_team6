@@ -69,27 +69,54 @@ getProfile = (req, res) => {
 };
 
 updateProfile = (req, res) => {
-    const { height, weight } = req.body;
+  const {
+      height, weight, fitness_level,
+      birthday, training_start_date, phone,
+      email, country
+  } = req.body;
 
-    if (height && (isNaN(height) || height <= 0)) {
-        return res.status(400).json({ err: "Invalid height value" });
-    }
+  // Validate numeric inputs
+  if (height && (isNaN(height) || height <= 0)) {
+      return res.status(400).json({ err: "Invalid height value" });
+  }
 
-    if (weight && (isNaN(weight) || weight <= 0)) {
-        return res.status(400).json({ err: "Invalid weight value" });
-    }
+  if (weight && (isNaN(weight) || weight <= 0)) {
+      return res.status(400).json({ err: "Invalid weight value" });
+  }
 
-    UserProfile.update(req.user.id, req.body)
-        .then(
-            (result) => {
-                console.log("success update profile");
-                res.status(200).json({ msg: "Profile updated successfully" });
-            },
-            (err) => {
-                console.log("fail update profile");
-                res.status(400).json({ err: err });
-            }
-        );
+  if (fitness_level && (!Number.isInteger(fitness_level) || fitness_level < 1 || fitness_level > 10)) {
+      return res.status(400).json({ err: "Fitness level must be between 1 and 10" });
+  }
+
+  // Validate dates
+  const dateFields = { birthday, training_start_date };
+  for (const [field, value] of Object.entries(dateFields)) {
+      if (value && isNaN(Date.parse(value))) {
+          return res.status(400).json({ err: `Invalid ${field} format` });
+      }
+  }
+
+  // Validate phone
+  if (phone && !/^\d{10}$/.test(phone)) {
+      return res.status(400).json({ err: "Phone must be 10 digits" });
+  }
+
+  // Validate email
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ err: "Invalid email format" });
+  }
+
+  UserProfile.update(req.user.id, req.body)
+      .then(
+          (result) => {
+              console.log("success update profile");
+              res.status(200).json({ msg: "Profile updated successfully" });
+          },
+          (err) => {
+              console.log("fail update profile");
+              res.status(400).json({ err: err });
+          }
+      );
 };
 
 updateAvatar = (req, res) => {
