@@ -71,6 +71,11 @@ login = (req,res) => {
 
 }
 
+//TODO: update password
+updatePassword = (req,res) =>{
+  const userId = req.user.id;
+  const {currentPassword, newPassword} = req.body;
+  res.status(200).json({ msg: "Password updated successfully." });
+}
 
-
-module.exports = {create,login};
+module.exports = {create,login,updatePassword};
