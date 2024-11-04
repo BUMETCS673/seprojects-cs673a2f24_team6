@@ -5,7 +5,7 @@ const workoutPlanController = require('../controllers/WorkoutPlanController');
 const auth = require('../utils/auth');
 
 // All routes require authentication
-router.use(auth);
+// router.use(auth);
 
 // Create a new workout plan
 router.post('/', workoutPlanController.createPlan);

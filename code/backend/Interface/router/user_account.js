@@ -10,7 +10,7 @@ router.post('/login', userController.login);
 router.post('/register', userController.create);
 
 // Protected routes
-router.use(auth);
+// router.use(auth);
 
 // Profile routes
 router.get('/profile', userController.getProfile);

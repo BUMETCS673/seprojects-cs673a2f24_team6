@@ -10,7 +10,7 @@ router.get('/types', exerciseController.getTypes);            // Changed from ge
 router.get('/equipment', exerciseController.getEquipmentList);
 
 // Protected routes
-router.use(auth);
+// router.use(auth);
 
 // Create new exercise
 router.post('/', validateExercise, exerciseController.create);  // Changed from createExercise

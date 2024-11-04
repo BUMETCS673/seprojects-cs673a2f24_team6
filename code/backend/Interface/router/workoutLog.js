@@ -4,7 +4,7 @@ const router = express.Router();
 const workoutPlanController = require('../controllers/WorkoutPlanController');
 const auth = require('../utils/auth');
 
-router.use(auth);
+// router.use(auth);
 
 router.post('/', workoutPlanController.createPlan);
 router.get('/', workoutPlanController.getUserPlans);
