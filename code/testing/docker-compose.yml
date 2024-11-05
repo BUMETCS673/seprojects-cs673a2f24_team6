@@ -1,0 +1,15 @@
+version: '3'
+services:
+  cypress-tests:
+    build:
+      context: .
+      target: test-stage  # Use test-stage to run Cypress tests
+    container_name: cypress-tests
+    environment:
+      - CYPRESS_baseUrl=http://host.docker.internal:3001
+    command: ["npx", "cypress", "run"]
+
+
+networks:
+  sample-network:
+    driver: bridge
