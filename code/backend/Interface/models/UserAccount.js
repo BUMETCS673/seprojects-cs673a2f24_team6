@@ -49,10 +49,45 @@ checkCredentials = (identifier, password, type) => {
 }
 
 // update password
-
+updatePassword = (userId, newPassword) => {
+  // TODO: Implement bcrypt when ready
+  const hashPassword = newPassword;
+  
+  const sql = 'UPDATE user_account SET user_password = ? WHERE user_id = ?';
+  return SQL.runsql(sql, [hashPassword, userId])
+      .then(
+          (result) => result.rows,
+          (err) => err
+      );
+};
 // 
 
+findByEmail = (email) => {
+  const sql = 'SELECT * FROM user_account WHERE user_email = ?';
+  return SQL.runsql(sql, [email])
+      .then(
+          (result) => result.rows[0],
+          (err) => err
+      );
+};
+
+findByUsername = (username) => {
+  const sql = 'SELECT * FROM user_account WHERE user_name = ?';
+  return SQL.runsql(sql, [username])
+      .then(
+          (result) => result.rows[0],
+          (err) => err
+      );
+};
+
+findById = (userId) => {
+  const sql = 'SELECT user_id, user_email, user_name, user_group_id, user_role FROM user_account WHERE user_id = ?';
+  return SQL.runsql(sql, [userId])
+      .then(
+          (result) => result.rows[0],
+          (err) => err
+      );
+};
 
 
-
-module.exports = {create, checkCredentials};
+module.exports = {create, checkCredentials,updatePassword,findByEmail,findById,findByUsername};
