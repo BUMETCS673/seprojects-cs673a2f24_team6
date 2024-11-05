@@ -41,7 +41,7 @@ checkCredentials = (identifier, password, type) => {
 
               const DBpassword = result.rows[0].user_password;
               if(DBpassword == password){
-                return {"userId":result.rows[0].user_id};
+                return {"token":result.rows[0].user_id};
               }else{
                 return {"err":"password error"};
               }

@@ -3,10 +3,10 @@ const UserAccount = require('../models/UserAccount');
 
 create = (req, res) => {
 
-  const { email, username, password } = req.body;
+  const { email, name, password } = req.body;
 
   // Validate input
-  if (!email || !username || !password) {
+  if (!email || !name || !password) {
     return res.status(400).json({
       success: false,
       error: "Missing required fields"
@@ -16,13 +16,13 @@ create = (req, res) => {
   // Create account
   UserAccount.create({
     email,
-    username,
+    name,
     password
   })
   .then(
     (result)=>{
       console.log("success create");
-      res.status(200).json({"Token":result.rows.insertId});
+      res.status(200).json({"token":result.rows.insertId});
     },
     (err)=>{
       console.log("fall create");
