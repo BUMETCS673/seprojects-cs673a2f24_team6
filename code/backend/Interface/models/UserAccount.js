@@ -13,7 +13,7 @@ create = (userData) => {
   const sql = `INSERT INTO user_account( user_email, user_name, user_password ) VALUES (?,?,?)`;
   const values = [
     userData.email, 
-    userData.username, 
+    userData.name, 
     hashPassword];
 
   return SQL.runsql(sql, values);
