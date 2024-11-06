@@ -26,9 +26,8 @@
             "ALTER TABLE exercises ADD CONSTRAINT fk_user_id_e FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE SET NULL"
         ],
         [
-            "CREATE TABLE workout_log (record_id INT AUTO_INCREMENT UNIQUE, user_id INT NOT NULL, exercise_id INT, log_date DATE NOT NULL, description TEXT, number_of_set INT, status ENUM('Todo', 'Doing', 'Done') DEFAULT 'Todo', priority INT CHECK (priority BETWEEN 0 AND 10), start_time TIMESTAMP, end_time TIMESTAMP, total_time INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (record_id))",
-            "ALTER TABLE workout_log ADD CONSTRAINT fk_user_id_l FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE",
-            "ALTER TABLE workout_log ADD CONSTRAINT fk_exercise_id_l FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id) ON DELETE SET NULL"
+            "CREATE TABLE workout_log (record_id INT AUTO_INCREMENT UNIQUE,user_id INT,exercise_name VARCHAR(255),description VARCHAR(255),number_of_set INT,status VARCHAR(10),priority INT,start_time TIMESTAMP,end_time TIMESTAMP,total_time INT,PRIMARY KEY (record_id))",
+            "ALTER TABLE workout_log ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES user_account(user_id)"
         ],
         [
             "CREATE TABLE workout_plan (plan_id INT AUTO_INCREMENT, user_id INT NOT NULL, exercise_id INT NOT NULL, name VARCHAR(255) NOT NULL, description TEXT, start_date DATE NOT NULL, end_date DATE, target_sets INT, target_reps INT, target_duration INT, frequency_type ENUM('daily', 'weekly', 'monthly', 'custom') NOT NULL, frequency_value INT NOT NULL, days_of_week SET('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'), preferred_time TIME, priority INT CHECK (priority BETWEEN 0 AND 10), status ENUM('active', 'paused', 'completed', 'cancelled') DEFAULT 'active', reminder_enabled BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (plan_id))",

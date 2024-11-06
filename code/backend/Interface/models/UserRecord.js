@@ -13,7 +13,7 @@ createRecord = (user_id, recordData) => {
   } = recordData;
 
   const sql = `
-    INSERT INTO exercise_recording (
+    INSERT INTO workout_log (
       user_id, exercise_name, description, number_of_set, status, priority, start_time, end_time, total_time
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
@@ -27,7 +27,7 @@ createRecord = (user_id, recordData) => {
 }
 
 deleteRecord = (user_id, record_id) => {
-  const sql = `DELETE FROM exercise_recording WHERE user_id = ? AND record_id = ?`;
+  const sql = `DELETE FROM workout_log WHERE user_id = ? AND record_id = ?`;
   const value = [user_id, record_id];
 
   // TODO: add more res detail
@@ -48,7 +48,7 @@ updateRecord = (user_id, recordData) => {
   } = recordData;
 
   const sql = `
-    UPDATE exercise_recording
+    UPDATE workout_log
     SET exercise_name = ?, description = ?, number_of_set = ?, status = ?, priority = ?, start_time = ?, end_time = ?, total_time = ?
     WHERE user_id = ? AND record_id = ?
   `;
@@ -61,7 +61,7 @@ updateRecord = (user_id, recordData) => {
 }
 
 searchRecord = (user_id) => {
-  const sql = `SELECT * FROM exercise_recording WHERE user_id = ?`;
+  const sql = `SELECT * FROM workout_log WHERE user_id = ?`;
   const value = [user_id];
 
   return SQL.runsql(sql,value);
