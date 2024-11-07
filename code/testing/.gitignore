@@ -1,0 +1,30 @@
+# Cypress folders
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+cypress/fixtures/
+
+# Exclude logs and reports
+cypress/logs/
+cypress/reports/
+*.log
+
+# Node modules
+node_modules/
+
+# Dependency and package manager files
+package-lock.json
+yarn.lock
+
+# IDE or editor-specific files
+.vscode/
+.idea/
+.DS_Store
+
+# Coverage reports if using code coverage tools
+coverage/
+nyc_output/
+
+# Docker or CI specific
+cypress/cache/
+cypress/output/

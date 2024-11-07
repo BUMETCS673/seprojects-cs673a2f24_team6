@@ -2,6 +2,8 @@
 
 Include A MYSQL database and a Express JS web API interface 
 
+Read the REST_api_document.md 
+
 ## Quick Setup
 
 1. open a terminal
