@@ -7,6 +7,7 @@ import ExerciseSideBend from '../views/ExerciseSideBend.vue';
 import ExercisePushUp from '../views/ExercisePushUp.vue';
 import RegistrationPage from '../views/RegistrationPage.vue'; 
 import UserProfile from '../views/UserProfile.vue';
+import ProfileCard from '../views/ProfileCard.vue';
 
 const isAuthenticated = () => {
   return localStorage.getItem('loggedIn') === 'true'; 
@@ -54,7 +55,15 @@ const routes = [
   { path: '/exercise/side-bend', name: 'SideBend', component: ExerciseSideBend}, 
   { path: '/exercise/push-up', name: 'PushUp', component: ExercisePushUp},
   { path: '/register', name: 'Register', component: RegistrationPage },
-  { path: '/userprofile', name: 'UserProfile', component: UserProfile}
+  { path: '/userprofile', name: 'UserProfile', component: UserProfile}, 
+  { path: '/profile-card', name: 'ProfileCard', component: ProfileCard, beforeEnter: (to, from, next) => {
+    if (!isAuthenticated()) {
+      next('/');
+    } else {
+      next();
+    }
+  }
+}
 
 
 

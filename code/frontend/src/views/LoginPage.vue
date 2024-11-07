@@ -7,7 +7,7 @@
       <h2>Login</h2>
       <input v-model="email" placeholder="Email" class="input-box" />
       <input v-model="password" type="password" placeholder="Password" class="input-box" />
-      <button @click="logina" class="login-button">Continue</button> 
+      <button @click="login" class="login-button">Continue</button> 
       <button @click="goToRegister" class="register-button">Register</button>
       <p class="support-text">
         Welcome to FitFusion, the Fitness Plan Builder. <br />
@@ -32,7 +32,7 @@ export default {
   }, 
 
   methods: {
-    logina () {
+    login () {
       
       let url = 'http://127.0.0.1:3001/api/account?email=' + encodeURIComponent(this.email);
       url += '&password=' + encodeURIComponent(this.password);
@@ -45,14 +45,27 @@ export default {
           }
           return response.json()
         })
+
         .then(data => {
-          localStorage.setItem('loggedIn', 'true');   // safety check success
-          alert(data);                                // show logged in
-          window.location.href = '/welcome';          // go to welcome page
+          console.log("Backend response:", data);
+          if (data.token) {
+            localStorage.setItem('loggedIn', 'true');   // Store login status
+            localStorage.setItem('token', data.token);
+            alert('Successfully logged in'); // Show a message if available
+            window.location.href = '/welcome';          // Go to welcome page
+          } else {
+            alert('Invalid email or password');
+          }
         })
+        // .then(data => {
+        //   localStorage.setItem('loggedIn', 'true');   // safety check success
+        //   alert(data);                                // show logged in
+        //   window.location.href = '/welcome';          // go to welcome page
+        // })
         .catch(error => {
-          console.error('Error:', error)
-        })
+          console.error('Error during login:', error); 
+          alert('Invalid email or password');
+        });
     },
 
     goToRegister() {
