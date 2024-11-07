@@ -20,6 +20,7 @@ create = (req, res) => {
     password
   })
   .then(
+    
     (result)=>{
       console.log("success create");
       res.status(200).json({"token":result.rows.insertId});
@@ -42,7 +43,7 @@ login = (req,res) => {
 
   // Validate input
   if((!email && !name) || !password){
-    res.status(400).json({err:"missing not null value"});
+    return res.status(400).json({err:"missing not null value"});
   }
 
   // check login type
@@ -60,6 +61,9 @@ login = (req,res) => {
   UserAccount.checkCredentials(identifier,password,type)
   .then(
     (result) => {
+      if (result.err){
+        return res.status(401).json(result);
+      }
       console.log("success login");
       res.status(200).json(result);
     },
@@ -78,4 +82,43 @@ updatePassword = (req,res) =>{
   res.status(200).json({ msg: "Password updated successfully." });
 }
 
-module.exports = {create,login,updatePassword};
+deleteAccount = (req, res) => {
+  const userId = req.user.id;
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ err: "Password is required" });
+  }
+
+  UserAccount.findById(userId)
+    .then(
+      (user) => {
+        if (!user) {
+          return Promise.reject({ status: 404, message: "Account not found" });
+        }
+        return UserAccount.verifyPassword(userId, password);
+      },
+      (err) => Promise.reject({ status: 400, message: err })
+    )
+    .then(
+      (isValid) => {
+        if (!isValid) {
+          return Promise.reject({ status: 401, message: "Invalid password" });
+        }
+        return UserAccount.deleteAccount(userId);
+      },
+      (err) => Promise.reject(err)
+    )
+    .then(
+      () => {
+        res.status(200).json({ msg: "Account deleted successfully" });
+      }
+    )
+    .catch((err) => {
+      const status = err.status || 400;
+      const message = err.message || err;
+      res.status(status).json({ err: message });
+    });
+};
+
+module.exports = {create,login,updatePassword, deleteAccount};

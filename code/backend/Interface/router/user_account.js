@@ -10,5 +10,6 @@ router.post("/",UserAccountController.create);
 router.get("/",UserAccountController.login)
 //Update password
 router.put("/",auth,UserAccountController.updatePassword)
-
+//Delete user account
+router.delete("/", auth, UserAccountController.deleteAccount);
 module.exports=router;

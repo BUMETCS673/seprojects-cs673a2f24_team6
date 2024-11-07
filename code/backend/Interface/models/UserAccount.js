@@ -84,10 +84,42 @@ findById = (userId) => {
   const sql = 'SELECT user_id, user_email, user_name, user_group_id, user_role FROM user_account WHERE user_id = ?';
   return SQL.runsql(sql, [userId])
       .then(
-          (result) => result.rows[0],
+          (result) => result.rows[0] || null,
           (err) => err
       );
 };
 
+findById = (userId) => {
+  const sql = 'SELECT user_id, user_email, user_name, user_group_id, user_role FROM user_account WHERE user_id = ?';
+  return SQL.runsql(sql, [userId])
+    .then(
+      (result) => result.rows[0] || null,
+      (err) => err
+    );
+};
 
-module.exports = {create, checkCredentials,updatePassword,findByEmail,findById,findByUsername};
+verifyPassword = (userId, password) => {
+  const sql = 'SELECT user_password FROM user_account WHERE user_id = ?';
+  return SQL.runsql(sql, [userId])
+    .then(
+      (result) => {
+        if (!result.rows[0]) {
+          return false;
+        }
+        return result.rows[0].user_password === password;
+      },
+      (err) => err
+    );
+};
+
+deleteAccount = (userId) => {
+  const sql = 'DELETE FROM user_account WHERE user_id = ?';
+  return SQL.runsql(sql, [userId])
+    .then(
+      (result) => result.rows,
+      (err) => err
+    );
+};
+
+
+module.exports = {create, checkCredentials,updatePassword,findByEmail,findById,findByUsername, deleteAccount, verifyPassword};
