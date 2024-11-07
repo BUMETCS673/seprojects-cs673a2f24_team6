@@ -1,14 +1,80 @@
 describe('template spec', () => {
   let token = '';
   let record = 0;
+  const testUser = {
+    name: `test_${Date.now()}`, // Unique username to avoid conflicts
+    password: 'password',
+    email: `test_${Date.now()}@test.com`
+  };
+
+  const cleanupTestData = () => {
+    if (token) {
+      // Clean up record if it exists
+      if (record) {
+        cy.request({
+          method: 'DELETE',
+          url: `/api/record`,
+          qs: {
+            token: token,
+            record_id: record
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          failOnStatusCode: false // Don't fail if record already deleted
+        });
+      }
+
+      // Delete test user account
+      cy.request({
+        method: 'DELETE',
+        url: '/api/account',
+        qs: { token },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        failOnStatusCode: false
+      });
+    }
+  };
+
+  before(() => {
+    // Register new test user
+    cy.request({
+      method: 'POST',
+      url: '/api/account',
+      body: testUser,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then((response) => {
+      expect(response.status).to.eq(200);
+      
+      // Login to get token
+      cy.request({
+        method: 'GET',
+        url: `/api/account`,
+        qs: {
+          name: testUser.name,      
+          password: testUser.password
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        }, 
+      }).then((loginResponse) => {
+        expect(loginResponse.status).to.eq(200);
+        token = loginResponse.body.token;
+      });
+    });
+  });
 
   it('should login and get token first - GET Request', () => {
     cy.request({
       method: 'GET',
       url: `/api/account`,
       qs: {
-        name: 'test',      
-        password: 'password'
+        name: testUser.name,      
+        password: testUser.password
       },
       headers: {
         'Content-Type': 'application/json',
@@ -16,7 +82,7 @@ describe('template spec', () => {
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('token'); 
-      token = response.body.token
+      token = response.body.token;
     });
   });
 
@@ -68,7 +134,7 @@ describe('template spec', () => {
       url: `/api/record`, 
       body: {
         token: token,
-        record_id:record,
+        record_id: record,
         exercise_name: "Testing modify",
         description: "Upper body strength exercise",
         number_of_set: 8,
@@ -106,4 +172,15 @@ describe('template spec', () => {
     });
   });
 
-})
+  // Clean up after each failed test
+  afterEach(function() {
+    if (this.currentTest.state === 'failed') {
+      cleanupTestData();
+    }
+  });
+
+  // Final cleanup
+  after(() => {
+    cleanupTestData();
+  });
+});
