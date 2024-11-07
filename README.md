@@ -17,7 +17,7 @@ FitFusion is a web-based fitness tracking platform  designed for fitness enthusi
 
 - **Frontend**: Vue.js
 - **Backend**: Node.js
-- **Database**: MongoDB
+- **Database**: MySQL
 - **AI Integration**: ChatGPT API or Llama API
 - **Version Control**: Git & GitHub
 - **Containerization**: Docker
@@ -27,3 +27,7 @@ FitFusion is a web-based fitness tracking platform  designed for fitness enthusi
 ## Continuous Update Statement
 
 This README file is a living document and will be continuously updated  throughout the project lifecycle. Changes in project scope,  architecture, team roles, and other project components will be reflected here as the project progresses.
+
+## JIRA
+Here's the link to our JIRA
+https://cs673a2f24team6.atlassian.net/jira/software/projects/FITFUSION/boards/1

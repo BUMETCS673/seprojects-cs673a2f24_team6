@@ -7,8 +7,10 @@
       <h2>Login</h2>
       <input v-model="email" placeholder="Email" class="input-box" />
       <input v-model="password" type="password" placeholder="Password" class="input-box" />
+
       <button @click="login" class="login-button">Continue</button> 
       <button @click="goToRegister" class="register-button">Register</button>
+      
       <p class="support-text">
         Welcome to FitFusion, the Fitness Plan Builder. <br />
         Please login or register.
@@ -33,6 +35,7 @@ export default {
 
   methods: {
     login () {
+
       
       let url = 'http://127.0.0.1:3001/api/account?email=' + encodeURIComponent(this.email);
       url += '&password=' + encodeURIComponent(this.password);
@@ -71,7 +74,6 @@ export default {
     goToRegister() {
       this.$router.push('/register');
     }
-
   }
 
 

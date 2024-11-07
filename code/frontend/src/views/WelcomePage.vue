@@ -52,6 +52,7 @@ export default {
   methods: {
     redirectToAmazon() {
       window.location.href = 'https://fitfusion-gym-exercises.netlify.app/';
+
     }
   }
 }
