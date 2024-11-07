@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const router = require('./router');
-const SQL = require('./router/SQLoperate');
+const SQL = require('./utils/SQL');
 const cors = require('cors');
 
 app.use(express.json());
