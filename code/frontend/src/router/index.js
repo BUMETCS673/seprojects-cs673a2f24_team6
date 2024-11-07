@@ -5,9 +5,11 @@ import RecordPage from '../views/RecordPage.vue';
 import PlanPage from '../views/PlanPage.vue';
 import ExerciseSideBend from '../views/ExerciseSideBend.vue';
 import ExercisePushUp from '../views/ExercisePushUp.vue';
+import RegistrationPage from '../views/RegistrationPage.vue'; 
+import UserProfile from '../views/UserProfile.vue';
+import ProfileCard from '../views/ProfileCard.vue';
 
 const isAuthenticated = () => {
-  // Simple check: Use local storage or state to check if logged in
   return localStorage.getItem('loggedIn') === 'true'; 
 };
 
@@ -52,6 +54,16 @@ const routes = [
 
   { path: '/exercise/side-bend', name: 'SideBend', component: ExerciseSideBend}, 
   { path: '/exercise/push-up', name: 'PushUp', component: ExercisePushUp},
+  { path: '/register', name: 'Register', component: RegistrationPage },
+  { path: '/userprofile', name: 'UserProfile', component: UserProfile}, 
+  { path: '/profile-card', name: 'ProfileCard', component: ProfileCard, beforeEnter: (to, from, next) => {
+    if (!isAuthenticated()) {
+      next('/');
+    } else {
+      next();
+    }
+  }
+}
 
 
 

@@ -1,16 +1,24 @@
-version: '1'
-
+version: '3'
 services:
   frontend:
-    image: frontend
     build:
       context: .
+      target: production-stage  # Use production-stage for the frontend
     container_name: frontend
-    restart: always
     ports:
       - "8080:80"
-    networks:
-      - sample-network
+
+  cypress-tests:
+    build:
+      context: .
+      target: test-stage  # Use test-stage to run Cypress tests
+    container_name: cypress-tests
+    depends_on:
+      - frontend
+    environment:
+      - CYPRESS_baseUrl=http://frontend:80
+    command: ["npx", "cypress", "run"]
+
 
 networks:
   sample-network:

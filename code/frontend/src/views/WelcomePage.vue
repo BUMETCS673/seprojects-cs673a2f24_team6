@@ -8,6 +8,12 @@
       <router-link to="/plan" class="button">Build Fitness Plan</router-link>
     </div>
 
+
+    <div class="profile-button">
+      <router-link to="/UserProfile" class="button">User Profile</router-link>
+    </div>
+
+
     <div class="exercise-guide">
       <h2>Exercise Guides</h2>
       <div class="exercise-cards">
@@ -45,7 +51,8 @@ export default {
 
   methods: {
     redirectToAmazon() {
-      window.location.href = 'https://www.amazon.com';
+      window.location.href = 'https://fitfusion-gym-exercises.netlify.app/';
+
     }
   }
 }
@@ -72,6 +79,12 @@ p {
   display: flex;
   justify-content: center;
   margin-bottom: 50px;
+}
+
+.profile-button {
+  position: absolute; 
+  top: 25px;
+  right: 10px;
 }
 
 .button {
