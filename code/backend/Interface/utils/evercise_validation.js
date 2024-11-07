@@ -20,6 +20,7 @@ const validateExercise = (req, res, next) => {
 
     // Validate numbers if provided
     if (req.body.sets && (!Number.isInteger(req.body.sets) || req.body.sets < 0)) {
+        console.log("Invalid sets value:", sets);
         return res.status(400).json({
             success: false,
             message: "Sets must be a positive integer"
@@ -27,6 +28,7 @@ const validateExercise = (req, res, next) => {
     }
 
     if (req.body.reps && (!Number.isInteger(req.body.reps) || req.body.reps < 0)) {
+        console.log("Invalid reps value:", reps);
         return res.status(400).json({
             success: false,
             message: "Reps must be a positive integer"
@@ -34,6 +36,7 @@ const validateExercise = (req, res, next) => {
     }
 
     if (req.body.duration && (!Number.isInteger(req.body.duration) || req.body.duration < 0)) {
+        console.log("Invalid duration value:", duration);
         return res.status(400).json({
             success: false,
             message: "Duration must be a positive integer"
