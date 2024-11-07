@@ -185,7 +185,6 @@ describe('Exercise API Tests', () => {
     });
 
     it('should get all exercises', () => {
-      console.log(userId);
       cy.request({
         method: 'GET',
         url: '/api/exercise',
