@@ -1,3 +1,3 @@
 	
-Initialize project using Create React App
+Initialize gym_exercises part using Create React App
 
