@@ -1,2 +1,4 @@
 
 code/backend/Interface/.env
+# Dependency directories
+node_modules/
