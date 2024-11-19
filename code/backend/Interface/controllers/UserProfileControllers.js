@@ -4,12 +4,8 @@ const fs = require('fs');
 
 
 updateProfile = (req, res) => {
-
-  if(!req.body.token){
-    res.status(400).json({err:"missing token"});
-  }
-  // TODO: check the token status and get user_id
-  const user_id = req.body.token;
+  
+  const user_id = req.user.id;
 
   // TODO: check each params type and value
 
@@ -38,11 +34,7 @@ updateProfile = (req, res) => {
 
 getProfile = (req, res) => {
 
-  if(!req.query.token){
-    res.status(400).json({err:"missing token"});
-  }
-  // TODO: check the token status and get user_id
-  const user_id = req.query.token;
+  const user_id = req.user.id;
 
   // TODO: check each params type and value
 
@@ -60,7 +52,7 @@ updateAvatar = (req, res) => {
 }
 
 getAvatar = (req, res) => {
-  const user_id = req.query.token;
+  const user_id = req.user.id;
 
   const fileName = user_id + '.jpg';
 	const filePath = '../public/avatar';

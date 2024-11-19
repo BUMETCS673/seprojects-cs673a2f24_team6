@@ -85,10 +85,10 @@ Request Body:
 
 Response:
 
-* Success (200 OK): { "msg": "Account deleted successfully" }
-* Error (400 Bad Request): { "err": "Password is required" }
-* Error (404 Not Found): { "err": "Account not found" }
-* Error (401 Unauthorized): { "err": "Invalid password" }
+* Success (200 OK): `{ "msg": "Account deleted successfully" }`
+* Error (400 Bad Request): `{ "err": "Password is required" }`
+* Error (404 Not Found): `{ "err": "Account not found" }`
+* Error (401 Unauthorized): `{ "err": "Invalid password" }`
 
 
 
@@ -427,8 +427,9 @@ Request Body:
 ```
 
 Response:
-• Success (200 OK): Updated profile data
-• Error (400 Bad Request): { "err": "missing token" }
+
+* Success (200 OK): `{ "massage": "Profile updated successfully"}`
+* Error (400 Bad Request): `{"err":"Profile updated fail"}`
 
 ----------------------------------------------------------
 
@@ -441,8 +442,32 @@ Query Parameters:
 • token: User token (required)
 
 Response:
-• Success (200 OK): Profile data
-• Error (400 Bad Request): { "err": "missing token" }
+
+* Success (200 OK): 
+
+```json
+{
+    "First_name": "first2",
+    "Last_name": "last2",
+    "avatar_url": null,
+    "introduction": null,
+    "height": null,
+    "weight": null,
+    "fitness_level": null,
+    "fitness_goals": null,
+    "birthday": null,
+    "training_start_date": null,
+    "phone": null,
+    "Email": null,
+    "country": null,
+    "city": null,
+    "state": null
+}
+```
+
+
+
+* Error (400 Bad Request): `{ "err": }`
 
 ----------------------------------------------------------
 
@@ -452,11 +477,17 @@ Method: POST
 Description: Updates user's profile picture
 
 Request:
-• Multipart form data with 'avatar' field
+
+* Only accept .jpg file
+* file key need to be `avatar`
+* file size should less then 5MB
 
 Response:
-• Success (200 OK): { "success": "updateAvatar" }
-• Error (400 Bad Request): Error object
+
+* Success (200 OK): `{ "success": "updateAvatar" }`
+* Error (400 Bad Request): `{ "err": "Unexpected field"}`
+* Error (400 Bad Request): `{ "err": "Invalid file type. Only JPG, PNG and GIF files are allowed."}`
+* Error (400 Bad Request): `{ "err": "File too large. Maximum size is 5MB"}`
 
 ----------------------------------------------------------
 
@@ -470,5 +501,5 @@ Query Parameters:
 
 Response:
 • Success (200 OK): Image file
-• Error (404 Not Found): { "err": "no such file" }
+• Error (404 Not Found): `{ "err": "no such file" }`
 

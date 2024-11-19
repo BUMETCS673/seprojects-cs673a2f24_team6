@@ -48,7 +48,13 @@ updateProfile = (user_id, profileData) => {
   ];
 
   // TODO: add more res detail
-  return SQL.runsql(sql, values);
+  return SQL.runsql(sql, values)
+            .then((result)=>{
+              if(result.rows.affectedRows == 0){
+                return {"err":"Profile updated fail"};
+              }
+              return {"massage":"Profile updated successfully"};
+            },(err) => err);
 }
 
 createProfile = (user_id, profileData) => {
@@ -82,7 +88,13 @@ createProfile = (user_id, profileData) => {
     birthday, training_start_date, phone, Email, country, city, state
   ];
   
-  return SQL.runsql(sql, values);
+  return SQL.runsql(sql, values)
+            .then((result)=>{
+              if(result.rows.affectedRows == 0){
+                return {"err":"Profile updated fail"};
+              }
+              return {"massage":"Profile updated successfully"};
+            },(err) => err);
 }
 
 getProfile = (user_id) => {
@@ -98,7 +110,10 @@ getProfile = (user_id) => {
 
   const values = [user_id];
 
-  return SQL.runsql(sql, values);
+  return SQL.runsql(sql, values)
+            .then((result)=>{
+              return result.rows[0];
+            },(err) => err);
 }
 
 
