@@ -79,7 +79,26 @@ login = (req,res) => {
 updatePassword = (req,res) =>{
   const userId = req.user.id;
   const {currentPassword, newPassword} = req.body;
-  res.status(200).json({ msg: "Password updated successfully." });
+
+  if(!currentPassword || !newPassword){
+    return res.status(400).json({err:"Missing required fields"});
+  }
+
+  UserAccount.updatePassword(userId, currentPassword, newPassword)
+  .then(
+    (result) => {
+      if (result.err){
+        return res.status(400).json(result);
+      }
+      console.log("success change password");
+      res.status(200).json(result);
+    },
+    (err) => {
+      console.log("fall change password");
+      res.status(400).json(err);
+    }
+  )
+
 }
 
 deleteAccount = (req, res) => {

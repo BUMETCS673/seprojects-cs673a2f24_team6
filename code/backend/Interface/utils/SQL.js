@@ -52,6 +52,23 @@ createDatabase = () => {
     });
 };
 
+const checkTableExists = () => {
+    const sql = `SHOW TABLES`;
+    const table = config.table_name
+    return runsql(sql, [])
+      .then((result)=>{
+        const resultTables = result.rows.map(row => row.Tables_in_backend_database);
+        const allTablesExist = table.every(tableName => resultTables.includes(tableName));
+        if (allTablesExist) {
+          console.log("All tables are present in the database.");
+          return true;
+      } else {
+          console.log("Some tables are missing in the database.");
+          return false;
+      }
+      }); // If rows are returned, the table exists
+  };
+
 createTables = () => {
     const promises = config.tables.map(table => {
         // Execute each statement in the table array sequentially
@@ -66,7 +83,12 @@ createTables = () => {
 initializeDatabase = () => {
     console.log("Initializing database...");
     return createDatabase()
-        .then(() => createTables())
+        .then(() => checkTableExists())
+        .then((result) => {
+            if(!result){
+                return createTables()
+            }
+        })
         .then(
             () => {
                 console.log("Database initialization completed");
