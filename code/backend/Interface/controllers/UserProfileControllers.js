@@ -11,7 +11,7 @@ updateProfile = (req, res) => {
 
   UserProfile.getProfile(user_id)
   .then((result)=>{
-    if(result.rows.length == 0){
+    if(!result){
       UserProfile.createProfile(user_id, req.body)
       .then((result) => {
         res.status(200).json(result);

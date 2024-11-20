@@ -1,33 +1,7 @@
 // controllers/ExerciseController.js
 const Exercise = require('../models/Exercise')
 
-create = (req, res) => {
-    const { name, type } = req.body;
-    
-    if (!name || !type) {
-        return res.status(400).json({ err: "Missing required fields" });
-    }
-
-    Exercise.create({
-        ...req.body,
-        user_id: req.body.is_system ? null : req.user.id
-    })
-    .then(
-        (result) => {
-            console.log("success create exercise");
-            res.status(200).json({
-                msg: "Exercise created successfully",
-                data: result.rows
-            });
-        },
-        (err) => {
-            console.log("fail create exercise");
-            res.status(400).json({ err: err });
-        }
-    );
-};
-
-getTypes = (req, res) => {
+getTypeList = (req, res) => {
     Exercise.getTypes()
         .then(
             (types) => {
@@ -55,25 +29,8 @@ getEquipmentList = (req, res) => {
         );
 };
 
-getExercise = (req, res) => {
-    Exercise.findById(req.params.id)
-        .then(
-            (exercise) => {
-                console.log("success get exercise");
-                if (!exercise) {
-                    return res.status(404).json({ err: "Exercise not found" });
-                }
-                res.status(200).json(exercise);
-            },
-            (err) => {
-                console.log("fail get exercise");
-                res.status(400).json({ err: err });
-            }
-        );
-};
-
 getAll = (req, res) => {
-    Exercise.findAll(req.user.id)
+    Exercise.findAll()
         .then(
             (exercises) => {
                 console.log("success get all exercises");
@@ -86,22 +43,13 @@ getAll = (req, res) => {
         );
 };
 
-search = (req, res) => {
-    Exercise.search(req.query.q, req.query.type, req.query.equipment, req.user.id)
-        .then(
-            (exercises) => {
-                console.log("success search exercises");
-                res.status(200).json(exercises);
-            },
-            (err) => {
-                console.log("fail search exercises");
-                res.status(400).json({ err: err });
-            }
-        );
-};
-
 getByType = (req, res) => {
-    Exercise.findByType(req.params.type, req.user.id)
+
+    if(!req.query.type){
+        res.status(400).json({err:"missing type"});
+      }
+    
+    Exercise.findByType(req.query.type)
         .then(
             (exercises) => {
                 console.log("success get exercises by type");
@@ -114,119 +62,104 @@ getByType = (req, res) => {
         );
 };
 
-getUserExercises = (req, res) => {
-    Exercise.findByUserId(req.user.id)
+
+getByEquipment = (req, res) => {
+    if(!req.query.equipment){
+        res.status(400).json({err:"missing equipment"});
+      }
+    
+    Exercise.findByEquipment(req.query.equipment)
         .then(
             (exercises) => {
-                console.log("success get user exercises");
+                console.log("success get exercises by equipment");
                 res.status(200).json(exercises);
             },
             (err) => {
-                console.log("fail get user exercises");
+                console.log("fail get exercises by equipment");
                 res.status(400).json({ err: err });
             }
         );
 };
 
-update = (req, res) => {
-    Exercise.findById(req.params.id)
+getById = (req, res) => {
+    if(!req.query.exercise_id){
+        res.status(400).json({err:"missing exercise_id"});
+      }
+    
+    Exercise.findById(req.query.exercise_id)
         .then(
-            (exercise) => {
-                if (!exercise) {
-                    return Promise.reject({ status: 404, message: 'Exercise not found' });
-                }
-                if (exercise.user_id != req.user.id) {
-                    return Promise.reject({ status: 403, message: 'Cannot modify system exercises' });
-                }
-                return Exercise.update(req.params.id, req.body);
+            (exercises) => {
+                console.log("success get exercises by exercise_id");
+                res.status(200).json(exercises);
+            },
+            (err) => {
+                console.log("fail get exercises by exercise_id");
+                res.status(400).json({ err: err });
             }
-        )
+        );
+};
+
+create = (req, res) => {
+    const user_id = req.user.id;
+    if(user_id != 1){
+        res.status(400).json({ err: "only Admin account accept" });
+    }
+
+    if(!req.body.name){
+        res.status(400).json({err:"missing name"});
+    }
+
+    Exercise.create(req.body)
         .then(
             (result) => {
-                console.log("success update exercise");
-                res.status(200).json({ msg: "Exercise updated successfully" });
+                if (result.err){
+                    console.log("fail create exercise");
+                    return res.status(400).json(result);
+                }
+                console.log("success create exercise");
+                res.status(200).json(result);
+            },
+            (err) => {
+                console.log("fail create exercise");
+                res.status(400).json(err);
             }
-        )
-        .catch(error => {
-            console.log("fail update exercise", error);
-            const status = error.status || 400;
-            const message = error.message || error;
-            res.status(status).json({ err: message });
-        });
+        );
 };
 
 remove = (req, res) => {
-    Exercise.findById(req.params.id)
-        .then(
-            (exercise) => {
-                if (!exercise) {
-                    return res.status(404).json({ err: "Exercise not found" });
-                }
-                if (exercise.user_id != req.user.id) {
-                    return res.status(403).json({ err: "Cannot delete system exercises" });
-                }
-                return Exercise.delete(req.params.id);
-            }
-        )
+    const user_id = req.user.id;
+    if(user_id != 1){
+        res.status(400).json({ err: "only Admin account accept" });
+    }
+
+    if(!req.body.exercise_id){
+        res.status(400).json({err:"missing exercise_id"});
+    }
+    
+    Exercise.deleteExercise(req.body.exercise_id)
         .then(
             (result) => {
+                if (result.err){
+                    console.log("fail delete exercise");
+                    return res.status(400).json(result);
+                }
                 console.log("success delete exercise");
-                res.status(200).json({ msg: "Exercise deleted successfully" });
+                res.status(200).json(result);
             },
             (err) => {
                 console.log("fail delete exercise");
-                res.status(400).json({ err: err });
-            }
-        );
-};
-
-clone = (req, res) => {
-    Exercise.findById(req.params.id)
-        .then(
-            (exercise) => {
-                if (!exercise) {
-                    return res.status(404).json({ err: "Exercise not found" });
-                }
-
-                const clonedExercise = {
-                    name: `${exercise.name} (Custom)`,
-                    description: exercise.description,
-                    equipment: exercise.equipment,
-                    type: exercise.type,
-                    reps: exercise.reps,
-                    sets: exercise.sets,
-                    duration: exercise.duration,
-                    user_id: req.user.id
-                };
-
-                return Exercise.create(clonedExercise);
-            }
-        )
-        .then(
-            (result) => {
-                console.log("success clone exercise");
-                res.status(200).json({
-                    msg: "Exercise cloned successfully",
-                    data: result.rows
-                });
-            },
-            (err) => {
-                console.log("fail clone exercise");
-                res.status(400).json({ err: err });
+                res.status(400).json(err);
             }
         );
 };
 
 module.exports = {
-    create,
-    getTypes,
+    getTypeList,
     getEquipmentList,
-    getExercise,
     getAll,
-    search,
     getByType,
-    getUserExercises,
-    update,
-    remove,
-    clone
+    getByEquipment,
+    getById,
+    create,
+    remove
 };

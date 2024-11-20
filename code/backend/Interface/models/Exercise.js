@@ -1,79 +1,5 @@
 const SQL = require('../utils/SQL');
 
-// Create new exercise
-create = (exerciseData) => {
-    const sql = `INSERT INTO exercises 
-        (name, description, equipment, type, reps, sets, duration, user_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-    const values = [
-        exerciseData.name,
-        exerciseData.description,
-        exerciseData.equipment,
-        exerciseData.type,
-        exerciseData.reps,
-        exerciseData.sets,
-        exerciseData.duration,
-        exerciseData.user_id
-    ];
-
-    return SQL.runsql(sql, values);
-};
-
-// Find exercise by ID
-findById = (exerciseId) => {
-    const sql = 'SELECT * FROM exercises WHERE exercise_id = ?';
-    return SQL.runsql(sql, [exerciseId])
-        .then(
-            (result) => result.rows[0],
-            (err) => err
-        );
-};
-
-// Get all exercises for user
-findAll = (userId) => {
-    const sql = `
-        SELECT * FROM exercises 
-        WHERE user_id IS NULL OR user_id = ?
-        ORDER BY name ASC`;
-    return SQL.runsql(sql, [userId])
-        .then(
-            (result) => result.rows,
-            (err) => err
-        );
-};
-
-// Search exercises
-search = (query, type, equipment, userId) => {
-    let sql = `SELECT * FROM exercises WHERE (user_id IS NULL OR user_id = ?)`;
-    const values = [userId];
-
-    if (query) {
-        sql += ` AND (name LIKE ? OR description LIKE ?)`;
-        const searchTerm = `%${query}%`;
-        values.push(searchTerm, searchTerm);
-    }
-
-    if (type) {
-        sql += ` AND type = ?`;
-        values.push(type);
-    }
-
-    if (equipment) {
-        sql += ` AND equipment = ?`;
-        values.push(equipment);
-    }
-
-    sql += ` ORDER BY name ASC`;
-
-    return SQL.runsql(sql, values)
-        .then(
-            (result) => result.rows,
-            (err) => err
-        );
-};
-
-// Get exercise types
 getTypes = () => {
     const sql = `
         SELECT DISTINCT type 
@@ -86,7 +12,7 @@ getTypes = () => {
             (err) => err
         );
 };
-// get equipment list
+
 getEquipmentList = () =>{
     const sql = `
         SELECT DISTINCT equipment 
@@ -95,43 +21,28 @@ getEquipmentList = () =>{
         ORDER BY equipment`;
     return SQL.runsql(sql)
         .then(
-            (result) => result.rows.map(row => row.type),
+            (result) => result.rows.map(row => row.equipment),
             (err) => err
         );
 }
-// Update exercise
-update = (exerciseId, updates) => {
-    // Fields that are allowed to be updated
-    const allowedFields = [
-        'name', 
-        'type', 
-        'description', 
-        'equipment', 
-        'reps', 
-        'sets', 
-        'duration'
-    ];
 
-    // Filter out undefined values and non-allowed fields
-    const validUpdates = Object.entries(updates)
-        .filter(([key, value]) => allowedFields.includes(key) && value !== undefined)
-        .reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-        }, {});
+findAll = () => {
+    const sql = `
+        SELECT * FROM exercises
+        ORDER BY name ASC`;
+    return SQL.runsql(sql, [])
+        .then(
+            (result) => result.rows,
+            (err) => err
+        );
+};
 
-    // If no valid updates, reject
-    if (Object.keys(validUpdates).length === 0) {
-        return Promise.reject("No valid fields to update");
-    }
-
-    // Create SET clause for SQL
-    const setClause = Object.keys(validUpdates)
-        .map(key => `${key} = ?`)
-        .join(', ');
-
-    const sql = `UPDATE exercises SET ${setClause} WHERE exercise_id = ?`;
-    const values = [...Object.values(validUpdates), exerciseId];
+findByType = (type) => {
+    let sql = `
+        SELECT * FROM exercises 
+        WHERE type = ?
+        ORDER BY name ASC`;
+    const values = [type];
 
     return SQL.runsql(sql, values)
         .then(
@@ -140,23 +51,79 @@ update = (exerciseId, updates) => {
         );
 };
 
-// Delete exercise
-deleteExercise = (exerciseId) => {
-    const sql = 'DELETE FROM exercises WHERE exercise_id = ?';
-    return SQL.runsql(sql, [exerciseId])
+findByEquipment = (equipment) => {
+    let sql = `
+        SELECT * FROM exercises 
+        WHERE equipment = ?
+        ORDER BY name ASC`;
+    const values = [equipment];
+
+    return SQL.runsql(sql, values)
         .then(
             (result) => result.rows,
             (err) => err
         );
 };
 
+findById = (id) => {
+    let sql = `
+        SELECT * FROM exercises 
+        WHERE exercise_id = ?`;
+    const values = [id];
+
+    return SQL.runsql(sql, values)
+        .then(
+            (result) => result.rows,
+            (err) => err
+        );
+};
+
+create = (exerciseData) => {
+    const sql = `INSERT INTO exercises 
+        (name, description, equipment, type, url) 
+        VALUES (?, ?, ?, ?, ?)`;
+
+    const values = [
+        exerciseData.name,
+        exerciseData.description,
+        exerciseData.equipment,
+        exerciseData.type,
+        exerciseData.url
+    ];
+
+    return SQL.runsql(sql, values)
+        .then(
+            (result) => {
+                if(result.rows.affectedRows == 0){
+                    return {"err":"exercise create fail"};
+                  }
+                  return {"massage":"exercise create successfully"};
+            },
+            (err) => err
+        );
+};
+
+deleteExercise = (exerciseId) => {
+    const sql = 'DELETE FROM exercises WHERE exercise_id = ?';
+    return SQL.runsql(sql, [exerciseId])
+        .then(
+            (result) => {
+                if(result.rows.affectedRows == 0){
+                    return {"err":"exercise create fail"};
+                  }
+                  return {"massage":"exercise create successfully"};
+            },
+            (err) => err
+        );
+};
+
 module.exports = {
-    create,
-    findById,
-    findAll,
-    search,
     getTypes,
     getEquipmentList,
-    update,
-    delete: deleteExercise  // Export the delete function
+    findAll,
+    findByType,
+    findByEquipment,
+    findById,
+    create,
+    deleteExercise
 };
