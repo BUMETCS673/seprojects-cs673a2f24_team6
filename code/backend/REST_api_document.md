@@ -104,160 +104,127 @@ Request Body:
 ```json
 {
     "name": "string (required)",
-    "type": "string (required)",
+    "type": "string (optional)",
     "description": "string (optional)",
     "equipment": "string (optional)",
-    "reps": "number (optional)",
-    "sets": "number (optional)",
-    "duration": "number (optional)"
+    "url": "number (optional)"
 }
 ```
 
 Response:
-• Success (200 OK): 
-    {
-        "msg": "Exercise created successfully",
-        "data": result.rows
-    }
-• Error (400 Bad Request): { "err": "Missing required fields" }
+
+* Success (200 OK): `{"massage": "exercise create successfully"}`
+* Error (400 Bad Request): `{ "err": "only Admin account accept" }`
+* Error (400 Bad Request): `{ "err": "missing name" }`
+* Error (400 Bad Request): `{ "err": "exercise create fail" }`
 
 ----------------------------------------------------------
 
-### 2.2 Get Exercise Types
-Endpoint: ~/api/exercise/types
+### 2.2 Get Exercise Type List
+Endpoint: ~/api/exercise/typelist
 Method: GET
 Description: Retrieves all exercise types. Public route.
 
 Response:
-• Success (200 OK): Array of exercise types
-• Error (400 Bad Request): { "err": error_message }
+
+*  Success (200 OK): Array of exercise types
+* Error (400 Bad Request): `{ "err": error_message }`
 
 ----------------------------------------------------------
 
-### 2.3 Get Equipment List
-Endpoint: ~/api/exercise/equipment
+### 2.3 Get Exercise Equipment List
+Endpoint: ~/api/exercise/equipmentlist
 Method: GET
 Description: Retrieves all available equipment. Public route.
 
 Response:
-• Success (200 OK): Array of equipment
-• Error (400 Bad Request): { "err": error_message }
+
+* Success (200 OK): Array of equipment
+* Error (400 Bad Request): `{ "err": error_message }`
 
 ----------------------------------------------------------
 
 ### 2.4 Get All Exercises
 Endpoint: ~/api/exercise
 Method: GET
-Description: Retrieves all exercises (system + user's custom). Requires authentication.
+Description: Retrieves all exercises. Public route.
 
 Response:
-• Success (200 OK): Array of exercises
-• Error (400 Bad Request): { "err": error_message }
+
+* Success (200 OK): Array of exercises
+* Error (400 Bad Request): `{ "err": error_message }`
 
 ----------------------------------------------------------
 
-### 2.5 Search Exercises
-Endpoint: ~/api/exercise/search
+### 2.5 Get Exercises by Type
+Endpoint: ~/api/exercise/type
 Method: GET
-Description: Searches exercises based on criteria. Requires authentication.
+Description: Retrieves exercises of specific type. Public route.
 
 Query Parameters:
-• q: Search term (optional)
-• type: Exercise type (optional)
-• equipment: Equipment type (optional)
+
+* type: Exercise type
 
 Response:
-• Success (200 OK): Array of matching exercises
-• Error (400 Bad Request): { "err": error_message }
+
+* Success (200 OK): Array of exercises
+* Error (400 Bad Request): `{ "err": error_message }`
 
 ----------------------------------------------------------
 
-### 2.6 Get Exercises by Type
-Endpoint: ~/api/exercise/type/:type
+### 2.6 Get Exercises by Equipment 
+
+Endpoint: ~/api/exercise/equipment
 Method: GET
-Description: Retrieves exercises of specific type. Requires authentication.
+Description: Retrieves exercises of specific equipment. Public route.
 
-Path Parameters:
-• type: Exercise type
+Query Parameters:
+
+* equipment: Exercise equipment
 
 Response:
-• Success (200 OK): Array of exercises
-• Error (400 Bad Request): { "err": error_message }
+
+* Success (200 OK): Array of exercises
+* Error (400 Bad Request): `{ "err": error_message }`
 
 ----------------------------------------------------------
 
-### 2.7 Get User's Custom Exercises
-Endpoint: ~/api/exercise/custom
+### 2.7 Get Exercises by Exercise Id
+
+Endpoint: ~/api/exercise/id
 Method: GET
-Description: Retrieves user's custom exercises. Requires authentication.
+Description: Retrieves exercises of specific exercise id. Public route.
+
+Query Parameters:
+
+* exercise_id: Exercise id
 
 Response:
-• Success (200 OK): Array of custom exercises
-• Error (400 Bad Request): { "err": error_message }
+
+* Success (200 OK): Array of exercises
+* Error (400 Bad Request): `{ "err": error_message }`
 
 ----------------------------------------------------------
 
-### 2.8 Get Specific Exercise
-Endpoint: ~/api/exercise/:id
-Method: GET
-Description: Retrieves specific exercise by ID. Requires authentication.
-
-Path Parameters:
-• id: Exercise ID
-
-Response:
-• Success (200 OK): Exercise object
-• Error (404 Not Found): { "err": "Exercise not found" }
-
-----------------------------------------------------------
-
-### 2.9 Update Exercise
-Endpoint: ~/api/exercise/:id
-Method: PUT
-Description: Updates existing exercise. Requires authentication.
-
-Path Parameters:
-• id: Exercise ID
-
-Request Body: Same as Create Exercise
-
-Response:
-• Success (200 OK): { "msg": "Exercise updated successfully" }
-• Error (403 Forbidden): { "err": "Cannot modify system exercises" }
-• Error (404 Not Found): { "err": "Exercise not found" }
-
-----------------------------------------------------------
-
-### 2.10 Delete Exercise
-Endpoint: ~/api/exercise/:id
+### 2.8 Delete Exercise
+Endpoint: ~/api/exercise/
 Method: DELETE
 Description: Deletes an exercise. Requires authentication.
 
-Path Parameters:
-• id: Exercise ID
+Request Body:
+
+```json
+{
+    "exercise_id": "number (required)",
+}
+```
 
 Response:
-• Success (200 OK): { "msg": "Exercise deleted successfully" }
-• Error (403 Forbidden): { "err": "Cannot delete system exercises" }
-• Error (404 Not Found): { "err": "Exercise not found" }
 
-----------------------------------------------------------
-
-### 2.11 Clone Exercise
-Endpoint: ~/api/exercise/:id/clone
-Method: POST
-Description: Creates a copy of existing exercise. Requires authentication.
-
-Path Parameters:
-• id: Exercise ID to clone
-
-Response:
-• Success (200 OK): 
-    {
-        "msg": "Exercise cloned successfully",
-        "data": result.rows
-    }
-• Error (404 Not Found): { "err": "Exercise not found" }
+* Success (200 OK): `{"massage": "exercise delete successfully"}`
+* Error (400 Bad Request): `{ "err": "only Admin account accept" }`
+* Error (400 Bad Request): `{ "err": "missing exercise_id" }`
+* Error (400 Bad Request): `{ "err": "exercise delete fail" }`
 
 
 

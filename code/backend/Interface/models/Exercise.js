@@ -109,9 +109,9 @@ deleteExercise = (exerciseId) => {
         .then(
             (result) => {
                 if(result.rows.affectedRows == 0){
-                    return {"err":"exercise create fail"};
+                    return {"err":"exercise delete fail"};
                   }
-                  return {"massage":"exercise create successfully"};
+                  return {"massage":"exercise delete successfully"};
             },
             (err) => err
         );
