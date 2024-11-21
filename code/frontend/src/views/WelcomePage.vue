@@ -13,6 +13,10 @@
       <router-link to="/UserProfile" class="button">User Profile</router-link>
     </div>
 
+    <div class="calendar-button">
+      <router-link to="/Calendar" class="button">Plan Calendar</router-link>
+    </div>
+
 
     <div class="exercise-guide">
       <h2>Exercise Guides</h2>
@@ -83,6 +87,12 @@ p {
 .profile-button {
   position: absolute; 
   top: 25px;
+  right: 10px;
+}
+
+.calendar-button {
+  position: absolute; 
+  top: 80px;
   right: 10px;
 }
 

@@ -200,6 +200,10 @@ export default {
 };
 </script>
 
+
+
+
+
 <style scoped>
 /* Container styles */
 .record-container {
