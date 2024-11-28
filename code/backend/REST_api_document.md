@@ -239,24 +239,29 @@ Request Body:
 ```json
 {
     "exercise_id": "number (required)",
-    "name": "string (required)",
-    "start_date": "string (required)",
+    "title": "string (required)",
+    "description": "string (required)",
     "frequency_type": "string (required)",
-    "frequency_value": "number (required)",
-    "description": "string (optional)",
-    "end_date": "string (optional)",
-    "target_sets": "number (optional)",
-    "target_reps": "number (optional)",
-    "target_duration": "number (optional)",
+    "days_of_month": "number (optional)",
     "days_of_week": "string (optional)",
-    "preferred_time": "string (optional)",
-    "priority": "number (optional)"
+    "custom_day": "timestamp (optional)",
+    "time_of_day": "time (optional)",
+    "priority": "number (optional)",
+    "status": "boolean (required)",
+    "reminder_enabled": "boolean (optional)"
 }
+
 ```
 
 Response:
-• Success (200 OK): { "msg": "Plan created successfully", "data": result.rows }
-• Error (400 Bad Request): { "err": "Missing required field: [field]" }
+
+* Success (200 OK): `{ "massage":"Plan upload successfully" }`
+
+* Error (400 Bad Request): `{ "err": "Plan upload fail"}`
+* Error (400 Bad Request): `{"err":"No such execise id"}`
+* Error (400 Bad Request): `{"err":"some error happen"}`
+
+
 
 ----------------------------------------------------------
 
@@ -265,103 +270,66 @@ Endpoint: ~/api/plan
 Method: GET
 Description: Retrieves all user's workout plans. Requires authentication.
 
-Response:
-• Success (200 OK): Array of workout plans
-• Error (400 Bad Request): { "err": error_message }
-
-----------------------------------------------------------
-
-### 3.3 Get Active Plans
-Endpoint: ~/api/plan/active
-Method: GET
-Description: Retrieves user's active workout plans. Requires authentication.
-
 Query Parameters:
-• date: Target date (optional, defaults to current date)
+
+* token: User token (required)
 
 Response:
-• Success (200 OK): Array of active plans
-• Error (400 Bad Request): { "err": error_message }
+
+* Success (200 OK): Array of Record
+* Error (400 Bad Request): `{"err":"some error happen"}`
 
 ----------------------------------------------------------
 
-### 3.4 Get Plans by Frequency
-Endpoint: ~/api/plan/frequency/:frequency_type
-Method: GET
-Description: Retrieves plans by frequency type. Requires authentication.
-
-Path Parameters:
-• frequency_type: "daily", "weekly", "monthly", or "custom"
-
-Response:
-• Success (200 OK): Array of matching plans
-• Error (400 Bad Request): { "err": "Invalid frequency type" }
-
-----------------------------------------------------------
-
-### 3.5 Get Specific Plan
-Endpoint: ~/api/plan/:id
-Method: GET
-Description: Retrieves specific workout plan. Requires authentication.
-
-Path Parameters:
-• id: Plan ID
-
-Response:
-• Success (200 OK): Plan object
-• Error (403 Forbidden): { "err": "Access denied" }
-• Error (404 Not Found): { "err": "Plan not found" }
-
-----------------------------------------------------------
-
-### 3.6 Update Plan
-Endpoint: ~/api/plan/:id
+### 3.3 Update Plan
+Endpoint: ~/api/plan
 Method: PUT
 Description: Updates workout plan. Requires authentication.
 
-Path Parameters:
-• id: Plan ID
-
-Request Body: Same as Create Plan (all fields optional)
-
-Response:
-• Success (200 OK): { "msg": "Plan updated successfully" }
-• Error (404 Not Found): { "err": "Plan not found" }
-
-----------------------------------------------------------
-
-### 3.7 Update Plan Status
-Endpoint: ~/api/plan/:id/status
-Method: PATCH
-Description: Updates plan status. Requires authentication.
-
-Path Parameters:
-• id: Plan ID
-
 Request Body:
+
 ```json
 {
-    "status": "string (required)"
+    "plan_id": "number (required)",
+    "exercise_id": "number (required)",
+    "title": "string (required)",
+    "description": "string (required)",
+    "frequency_type": "string (required)",
+    "days_of_month": "number (optional)",
+    "days_of_week": "string (optional)",
+    "custom_day": "timestamp (optional)",
+    "time_of_day": "time (optional)",
+    "priority": "number (optional)",
+    "status": "boolean (required)",
+    "reminder_enabled": "boolean (optional)"
 }
 ```
 
 Response:
-• Success (200 OK): { "msg": "Plan status updated successfully" }
-• Error (400 Bad Request): { "err": "Status is required" }
+
+* Success (200 OK): `{ "massage":"Plan updated successfully" }`
+
+* Error (400 Bad Request): `{ "err": "Plan updated fail"}`
+* Error (400 Bad Request): `{"err":"No such execise id"}`
+* Error (400 Bad Request): `{"err":"some error happen"}`
 
 ----------------------------------------------------------
 
-### 3.8 Delete Plan
-Endpoint: ~/api/plan/:id
+### 3.4 Delete Plan
+Endpoint: ~/api/plan
 Method: DELETE
 Description: Deletes workout plan. Requires authentication.
 
-Path Parameters:
-• id: Plan ID
+Query Parameters:
+
+* token: User token (required)
+* plan_id: delete record id(required)
 
 Response:
-• Success (200 OK): { "msg": "Plan deleted successfully" }
-• Error (404 Not Found): { "err": "Plan not found" }
+
+* Success (200 OK): `{ "massage":"Plan delete successfully" }`
+* Error (400 Bad Request): `{ "err": "plan delete fail"}`
+* Error (400 Bad Request): `{"err":"some error happen"}`
 
 
 ## USER PROFILE ENDPOINTS
