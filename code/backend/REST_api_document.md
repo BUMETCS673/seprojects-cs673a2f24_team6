@@ -470,3 +470,99 @@ Response:
 • Success (200 OK): Image file
 • Error (404 Not Found): `{ "err": "no such file" }`
 
+
+## Workout Log ENDPOINTS
+
+### 5.1 Create New Record
+Endpoint: ~/api/record
+Method: POST
+Description: Creates a new user record.Requires authentication.
+
+Request Body:
+```json
+{
+  "exercise_id": "number (required)",
+  "description": "string (optional)",
+  "number_of_set": "number (optional)",
+  "status": "string (optional)",
+  "priority": "number (optional)",
+  "start_time": "timestamp (optional)",
+  "end_time": "timestamp (optional)",
+  "total_time": "number (optional)"
+}
+```
+
+Response:
+
+* Success (200 OK): `{ "massage":"Record upload successfully" }`
+
+* Error (400 Bad Request): `{ "err": "Record upload fail"}`
+* Error (400 Bad Request): `{"err":"No such execise id"}`
+* Error (400 Bad Request): `{"err":"some error happen"}`
+
+----------------------------------------------------------
+
+### 5.2 Get Record
+Endpoint: ~/api/record
+Method: GET
+Description: Retrieves user record information. Requires authentication.
+
+Query Parameters:
+
+* token: User token (required)
+
+Response:
+
+* Success (200 OK): Array of Record
+* Error (400 Bad Request): `{"err":"some error happen"}`
+
+----------------------------------------------------------
+
+### 5.3 Update Record
+Endpoint: ~/api/record
+Method: PUT
+Description: Updates user's record. Requires authentication.
+
+Request Body:
+```json
+{
+  "record_id":"number (required)",
+  "exercise_id": "number (required)",
+  "description": "string (optional)",
+  "number_of_set": "number (optional)",
+  "status": "string (optional)",
+  "priority": "number (optional)",
+  "start_time": "timestamp (optional)",
+  "end_time": "timestamp (optional)",
+  "total_time": "number (optional)"
+}
+```
+
+Response:
+
+* Success (200 OK): `{ "massage":"Record updated successfully" }`
+
+* Error (400 Bad Request): `{ "err": "Record updated fail"}`
+* Error (400 Bad Request): `{"err":"No such execise id"}`
+* Error (400 Bad Request): `{"err":"some error happen"}`
+
+----------------------------------------------------------
+
+### 5.4 Delete Record
+Endpoint: ~/api/record
+Method: DELETE
+Description: Deletes user record. Requires authentication.
+
+Query Parameters:
+
+* token: User token (required)
+* record_id: delete record id(required)
+
+
+
+Response:
+
+* Success (200 OK): `{ "massage":"Record delete successfully" }`
+* Error (400 Bad Request): `{ "err": "Record delete fail"}`
+* Error (400 Bad Request): `{"err":"some error happen"}`
+
