@@ -7,7 +7,6 @@ import Footer from './components/Footer'
 import ExerciseDetail from './pages/ExerciseDetail'
 import Home from './pages/Home'
 
-
 const App = () => {
   return (
     <div>
