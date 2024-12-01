@@ -2,28 +2,36 @@
   <div class="record-container">
     <h1 class="title">Record Exercise</h1>
 
-    <!-- show visible messages -->
+    <!-- Display messages -->
     <div v-if="message" :class="['message', messageType]">{{ message }}</div>
 
-    <!-- item1: name of exercise -->
+    <button @click="goToCurrentRecords" class="view-records-button">View Current Records</button>
+
+    <!-- Exercise ID Input -->
+    <div class="form-group">
+      <label for="exercise_id">Exercise ID:</label>
+      <input type="number" v-model="exercise_id" id="exercise_id" class="input-field" />
+    </div>
+
+    <!-- Exercise Name Input -->
     <div class="form-group">
       <label for="exercise_name">Exercise Name:</label>
       <input type="text" v-model="exercise_name" id="exercise_name" class="input-field" />
     </div>
 
-    <!-- item2: description of exercise -->
+    <!-- Description Input -->
     <div class="form-group">
       <label for="description">Description:</label>
       <textarea v-model="description" id="description" class="textarea-field"></textarea>
     </div>
 
-    <!-- item3: num of sets -->
+    <!-- Number of Sets Input -->
     <div class="form-group">
       <label for="number_of_set">Number of Sets:</label>
       <input type="number" v-model="number_of_set" id="number_of_set" class="input-field" />
     </div>
 
-    <!-- item4: status, which will be turned into numeric and store in backend -->
+    <!-- Status Selection -->
     <div class="form-group">
       <label for="status">Status:</label>
       <select v-model="selectedStatus" id="status" class="select-field">
@@ -34,7 +42,7 @@
       </select>
     </div>
 
-    <!-- item5: priority(1-10) -->
+    <!-- Priority Input -->
     <div class="form-group">
       <label for="priority">Priority:</label>
       <input
@@ -47,26 +55,27 @@
       />
     </div>
 
-    <!-- item6: start time -->
+    <!-- Start Time Input -->
     <div class="form-group">
       <label for="start_time">Start Time:</label>
       <input type="datetime-local" v-model="start_time" id="start_time" class="input-field" />
     </div>
 
-    <!-- item7: end time, calculate total time in backend -->
+    <!-- End Time Input -->
     <div class="form-group">
       <label for="end_time">End Time:</label>
       <input type="datetime-local" v-model="end_time" id="end_time" class="input-field" />
     </div>
 
+    <!-- Submit Button -->
     <button @click="submitRecord" class="save-button">Submit</button>
 
-
-        <!-- Submitted Records Display -->
+    <!-- Submitted Records Display -->
     <h2 class="subtitle">Submitted Records</h2>
     <div v-if="records && records.length > 0" class="records-list">
       <div v-for="(record, index) in records" :key="index" class="record-item">
-        <h3>{{ record.exercise_name }}</h3>
+        <h3>Exercise ID: {{ record.exercise_id }}</h3>
+        <p><strong>Exercise Name:</strong> {{ record.exercise_name }}</p>
         <p><strong>Description:</strong> {{ record.description }}</p>
         <p><strong>Number of Sets:</strong> {{ record.number_of_set }}</p>
         <p><strong>Status:</strong> {{ statusReverseMapping[record.status] }}</p>
@@ -79,18 +88,17 @@
     <div v-else>
       <p>No records submitted yet.</p>
     </div>
-
-
-     <!-- more todos -->
-
-
   </div>
 </template>
+
+
+
 
 <script>
 export default {
   data() {
     return {
+      exercise_id: 1, // Default exercise ID
       exercise_name: "",
       description: "",
       number_of_set: 1,
@@ -98,13 +106,13 @@ export default {
       priority: 1,
       start_time: "",
       end_time: "",
-      message: "",        // store messages for user
+      message: "", // Store messages for user
       messageType: "",
       records: [],
     };
   },
   computed: {
-    statusMapping() {   // str -> num
+    statusMapping() { // Map status from string to number
       return {
         Done: 1,
         "Half Finished": 2,
@@ -112,23 +120,33 @@ export default {
         Abandoned: 4,
       };
     },
-    statusReverseMapping() {
+    statusReverseMapping() { // Map status from number to string
       return {
-        1: "Done", 
-        2: "Half Finished", 
-        3: "Intended", 
+        1: "Done",
+        2: "Half Finished",
+        3: "Intended",
         4: "Abandoned",
       };
     },
-
   },
   methods: {
+    formatDateTime(date) {
+      // Format date into "YYYY-MM-DD HH:MM:SS"
+      let year = date.getFullYear();
+      let month = ('0' + (date.getMonth() + 1)).slice(-2);
+      let day = ('0' + date.getDate()).slice(-2);
+      let hours = ('0' + date.getHours()).slice(-2);
+      let minutes = ('0' + date.getMinutes()).slice(-2);
+      let seconds = ('0' + date.getSeconds()).slice(-2);
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    },
     submitRecord() {
+      // Parse and format start and end times
       const start = new Date(this.start_time);
       const end = new Date(this.end_time);
       const total_time = Math.floor((end - start) / 1000);
 
-      const token = localStorage.getItem("token");           // get token
+      const token = localStorage.getItem("token"); // Get token
       if (!token) {
         console.error("Token missing, please login first.");
         this.message = "Token missing, please login first.";
@@ -136,19 +154,21 @@ export default {
         return;
       }
 
-      const recordData = {    // all data items to deliver to database
-        token: token,
-        exercise_name: this.exercise_name,
+      const formattedStartTime = this.formatDateTime(start);
+      const formattedEndTime = this.formatDateTime(end);
+
+      const recordData = {
+        exercise_id: this.exercise_id,
         description: this.description,
         number_of_set: this.number_of_set,
         status: this.statusMapping[this.selectedStatus],
         priority: this.priority,
-        start_time: this.start_time,
-        end_time: this.end_time,
+        start_time: formattedStartTime,
+        end_time: formattedEndTime,
         total_time: total_time,
       };
 
-      fetch("http://127.0.0.1:3001/api/record", {    // record api
+      fetch(`http://127.0.0.1:3001/api/record?token=${token}`, { // Corrected API URL
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -157,29 +177,31 @@ export default {
       })
         .then((response) => {
           if (!response.ok) {
-            throw new Error("Failed to submit record");
+            return response.json().then((errorData) => {
+              throw new Error(errorData.err || "Failed to submit record");
+            });
           }
           return response.json();
         })
         .then((data) => {
           console.log("Record submitted successfully:", data);
           this.message = "Record submitted successfully!";
-          this.messageType = "success"
+          this.messageType = "success";
 
-          this.records.unshift( {
-            exercise_name: this.exercise_name, 
-            description: this.description, 
+          // Add the new record to the records array
+          this.records.unshift({
+            exercise_id: this.exercise_id,
+            exercise_name: this.exercise_name,
+            description: this.description,
             number_of_set: this.number_of_set,
-            status: this.statusMapping[this.selectedStatus], 
-            priority: this.priority, 
-            start_time: this.start_time, 
-            end_time: this.end_time, 
+            status: this.statusMapping[this.selectedStatus],
+            priority: this.priority,
+            start_time: formattedStartTime,
+            end_time: formattedEndTime,
             total_time: total_time,
-          }); 
+          });
 
-          this.resetForm();               // reset to start status after submit one
-
-
+          this.resetForm(); // Reset form after submission
         })
         .catch((error) => {
           console.error("Error submitting record:", error);
@@ -187,7 +209,8 @@ export default {
           this.messageType = "error";
         });
     },
-    resetForm() {   // reset related
+    resetForm() { // Reset form fields
+      this.exercise_id = 1;
       this.exercise_name = "";
       this.description = "";
       this.number_of_set = 1;
@@ -195,6 +218,10 @@ export default {
       this.priority = 1;
       this.start_time = "";
       this.end_time = "";
+    },
+
+    goToCurrentRecords() {
+      this.$router.push('/current-records');
     },
   },
 };
@@ -205,162 +232,208 @@ export default {
 
 
 <style scoped>
-/* Container styles */
-.record-container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-}
+/* Import Google Fonts for a modern look */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
-/* Message styles */
-.message {
-  padding: 10px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-  text-align: center;
-}
-
-.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-/* Flex container */
-.content-wrapper {
-  display: flex;
-  gap: 20px;
-}
-
-/* Left Side: Form */
-.form-section {
-  flex: 1;
-  padding: 20px;
-  background-color: #fafafa;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.title {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  font-weight: bold;
-  color: #555;
-  display: block;
-  margin-bottom: 5px;
-}
-
-.input-field,
-.textarea-field,
-.select-field {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc; /* Changed border color */
-  border-radius: 5px;
+/* Apply base font family */
+* {
+  font-family: "Poppins", sans-serif;
   box-sizing: border-box;
 }
 
-.input-field:focus,
-.textarea-field:focus,
-.select-field:focus {
-  border-color: #4caf50; /* Green border on focus */
-  outline: none;
-}
-
-.textarea-field {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.save-button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  color: #fff;
-  background-color: #4caf50;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.save-button:hover {
-  background-color: #45a049;
-}
-
-/* Right Side: Records */
-.records-section {
-  flex: 1;
+/* Container styles */
+.record-container {
+  max-width: 700px;
+  margin: auto;
   padding: 20px;
-  background-color: #fafafa;
-  border-radius: 10px;
-  overflow-y: auto;
-  max-height: calc(100vh - 100px); /* Adjust as needed */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+.record-container:hover {
+  transform: translateY(-3px);
+}
+
+/* Title and Subtitle */
+.title {
+  text-align: center;
+  color: #2c3e50;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  font-family: "Poppins", sans-serif;
+  letter-spacing: 1px;
 }
 
 .subtitle {
   text-align: center;
-  color: #333;
+  color: #34495e;
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 40px;
   margin-bottom: 20px;
+  letter-spacing: 0.5px;
 }
 
+/* Message Styles */
+.message {
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+}
+.success {
+  background-color: #dff0d8;
+  color: #3c763d;
+}
+.error {
+  background-color: #f2dede;
+  color: #a94442;
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+}
+label {
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Input, Textarea, and Select */
+.input-field,
+.textarea-field,
+.select-field {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  color: #34495e;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  background: #f8f9fa;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.input-field:focus,
+.textarea-field:focus,
+.select-field:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+  outline: none;
+}
+
+/* Submit Button Styles */
+.save-button {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #43cea2, #185a9d);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(24, 90, 157, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.save-button:hover {
+  background: linear-gradient(135deg, #185a9d, #43cea2);
+  box-shadow: 0 6px 16px rgba(24, 90, 157, 0.4);
+  transform: translateY(-2px);
+}
+
+.save-button:active {
+  background: linear-gradient(135deg, #0f4c75, #2cb47b);
+  box-shadow: 0 2px 8px rgba(24, 90, 157, 0.3);
+  transform: translateY(1px);
+}
+
+
+/* Records Section */
 .records-list {
   margin-top: 20px;
 }
-
 .record-item {
-  background-color: #fff;
-  border: 1px solid #eee;
-  padding: 15px;
-  border-radius: 5px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  padding: 18px;
+  border-radius: 8px;
   margin-bottom: 15px;
-  transition: box-shadow 0.3s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .record-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
 }
-
 .record-item h3 {
-  margin-top: 0;
+  margin: 0 0 10px;
   color: #333;
+  font-size: 18px;
+  font-weight: 700;
 }
-
 .record-item p {
   margin: 5px 0;
   color: #555;
+  font-size: 14px;
 }
 
-/* Media Queries for Responsiveness */
-@media (max-width: 1024px) {
-  .content-wrapper {
-    flex-direction: column;
-  }
+/* Empty State Message */
+.no-records-message {
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+  margin-top: 20px;
+}
 
-  .form-section,
-  .records-section {
-    max-width: 600px;
-    margin: 0 auto;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .title {
+    font-size: 24px;
   }
-
-  .records-section {
-    margin-top: 30px;
-    max-height: none;
+  .subtitle {
+    font-size: 18px;
+  }
+  .input-field,
+  .textarea-field,
+  .select-field {
+    padding: 10px;
+    font-size: 14px;
+  }
+  .save-button {
+    padding: 12px;
+    font-size: 16px;
   }
 }
+
+
+/* current records page button */
+
+.view-records-button {
+  margin-top: 20px;
+  padding: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.view-records-button:hover {
+  background: #218838;
+}
+
+
+
 </style>

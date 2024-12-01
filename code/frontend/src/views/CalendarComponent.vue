@@ -47,8 +47,8 @@ export default {
     return {
       currentMonth: new Date().getMonth(),
       currentYear: new Date().getFullYear(),
-      records: [], // store records from backend db
-      selectedRecords: [], // records for the selected date
+      records: [],   // store records from backend db
+      selectedRecords: [],   // records for the selected date
       selectedDate: "",
     };
   },
@@ -74,7 +74,7 @@ export default {
     recordsByDate() {
       const recordsByDate = {};
       this.records.forEach(record => {
-        const date = new Date(record.start_time); // use start_time as highlight indicator
+        const date = new Date(record.start_time);   // use start_time as highlight indicator
         console.log("Record Date", date);
         if (
           date.getFullYear() === this.currentYear &&
@@ -85,15 +85,17 @@ export default {
           recordsByDate[day].push(record);
         }
       });
-      console.log("Records by Date:", recordsByDate); // debug yong
+      console.log("Records by Date:", recordsByDate); // debug use
       return recordsByDate;
     },
   },
+
+
   methods: {
     async fetchRecords() {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://127.0.0.1:3001/api/record", {   // record api
+        const response = await axios.get("http://127.0.0.1:3001/api/record?token=${data.token}", {   // record api
           params: { token },
         });
         console.log("API Response:", response.data); // check api response on f12
@@ -105,6 +107,7 @@ export default {
       }
     },
 
+    // month switch function
     prevMonth() {
       if (this.currentMonth === 0) {
         this.currentMonth = 11;
@@ -123,9 +126,11 @@ export default {
       }
       this.fetchRecords();
     },
+
+    
     highlightDates(day) {
       const hasRecord = !!this.recordsByDate[day];
-      console.log(`Highlight for Day ${day}:`, hasRecord); // check highlight availability
+      console.log(`Highlight for Day ${day}:`, hasRecord);  // check highlight availability
       return hasRecord;
     },
     showRecords(day) {

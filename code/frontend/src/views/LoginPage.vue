@@ -34,7 +34,7 @@ export default {
   methods: {
     login () {
       
-      let url = 'http://127.0.0.1:3001/api/account?email=' + encodeURIComponent(this.email);
+      let url = 'http://127.0.0.1:3001/api/account?email=' + encodeURIComponent(this.email);  // account api
       url += '&password=' + encodeURIComponent(this.password);
       
 
@@ -49,10 +49,12 @@ export default {
         .then(data => {
           console.log("Backend response:", data);
           if (data.token) {
-            localStorage.setItem('loggedIn', 'true');   // Store login status
+            localStorage.setItem('loggedIn', 'true');   // store login status
             localStorage.setItem('token', data.token);
-            alert('Successfully logged in'); // Show a message if available
-            window.location.href = '/welcome';          // Go to welcome page
+            localStorage.setItem('email', data.email);
+            localStorage.setItem('userID', data.token);
+            alert('Successfully logged in'); // show a message if available
+            window.location.href = '/welcome';          // go to welcome page
           } else {
             alert('Invalid email or password');
           }
