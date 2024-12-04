@@ -21,6 +21,8 @@
             Priority: {{ plan.priority || "N/A" }}
             <br />
             Reminder Enabled: {{ plan.reminder_enabled == 1 ? "Yes" : "No" }}
+            <br />
+            <button @click="deletePlan(plan.plan_id)" class="delete-button">Delete</button>
           </li>
         </ul>
       </div>
@@ -69,6 +71,38 @@
         }
       },
 
+
+      async deletePlan(planId) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('User is not logged in.');
+          return;
+        }
+
+        if (!confirm('Are you sure you want to delete this plan?')) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`http://127.0.0.1:3001/api/plan?token=${token}&plan_id=${planId}`, {
+            method: 'DELETE',
+          });
+          const result = await response.json();
+          console.log('deletePlan result:', result);
+
+          if (response.ok) {
+            alert('Plan deleted successfully');
+            // Remove the deleted plan from the plans array
+            this.plans = this.plans.filter(plan => plan.plan_id !== planId);
+          } else {
+            alert(result.err || 'Failed to delete plan');
+          }
+        } catch (error) {
+          console.error('Error occurred while deleting plan', error);
+          alert('Error occurred while deleting plan');
+        }
+      },
+
       goBack() {
         this.$router.push('/plan');
       },
@@ -81,32 +115,45 @@
   
 
   
-  <style>
-  .current-plans-page {
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-  }
+<style>
+.current-plans-page {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
   
-  .plan-item {
-    background: #f1f1f1;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-  }
+.plan-item {
+  background: #f1f1f1;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+}
   
-  .back-button {
-    margin-top: 20px;
-    padding: 10px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
+.back-button {
+  margin-top: 20px;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
   
-  .back-button:hover {
-    background: #0056b3;
-  }
-  </style>
+.back-button:hover {
+  background: #0056b3;
+}
+
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.delete-button:hover {
+  background-color: #c0392b;
+}
+  
+</style>
   

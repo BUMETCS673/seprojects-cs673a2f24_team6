@@ -7,22 +7,30 @@
 
     <button @click="goToCurrentRecords" class="view-records-button">View Current Records</button>
 
-    <!-- Exercise ID Input -->
+    <!-- Exercise Type Dropdown -->
     <div class="form-group">
-      <label for="exercise_id">Exercise ID:</label>
-      <input type="number" v-model="exercise_id" id="exercise_id" class="input-field" />
+      <label for="exercise_type">Exercise Type:</label>
+      <select v-model="selectedExerciseType" @change="onExerciseTypeChange" id="exercise_type" class="select-field">
+        <option value="" disabled>Select Exercise Type</option>
+        <option v-for="type in exerciseTypes" :key="type" :value="type">{{ type }}</option>
+      </select>
     </div>
 
-    <!-- Exercise Name Input -->
+    <!-- Exercise Name Dropdown -->
     <div class="form-group">
       <label for="exercise_name">Exercise Name:</label>
-      <input type="text" v-model="exercise_name" id="exercise_name" class="input-field" />
+      <select v-model="selectedExerciseId" :disabled="!selectedExerciseType" id="exercise_name" class="select-field">
+        <option value="" disabled>Select Exercise Name</option>
+        <option v-for="exercise in exercisesByType" :key="exercise.exercise_id" :value="exercise.exercise_id">
+          {{ exercise.name }}
+        </option>
+      </select>
     </div>
 
-    <!-- Description Input -->
+    <!-- Description Display -->
     <div class="form-group">
       <label for="description">Description:</label>
-      <textarea v-model="description" id="description" class="textarea-field"></textarea>
+      <textarea v-model="selectedExerciseDescription" id="description" class="textarea-field" readonly></textarea>
     </div>
 
     <!-- Number of Sets Input -->
@@ -74,8 +82,7 @@
     <h2 class="subtitle">Submitted Records</h2>
     <div v-if="records && records.length > 0" class="records-list">
       <div v-for="(record, index) in records" :key="index" class="record-item">
-        <h3>Exercise ID: {{ record.exercise_id }}</h3>
-        <p><strong>Exercise Name:</strong> {{ record.exercise_name }}</p>
+        <h3>Exercise: {{ record.exercise_name }}</h3>
         <p><strong>Description:</strong> {{ record.description }}</p>
         <p><strong>Number of Sets:</strong> {{ record.number_of_set }}</p>
         <p><strong>Status:</strong> {{ statusReverseMapping[record.status] }}</p>
@@ -94,19 +101,25 @@
 
 
 
+
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
-      exercise_id: 1, // Default exercise ID
-      exercise_name: "",
-      description: "",
+      exerciseTypes: [],           // drop down ist of exercise types
+      selectedExerciseType: '',    // Selected exercise type
+      exercisesByType: [],         // Exercises of the selected type
+      selectedExerciseId: '',      // Selected exercise ID
+      selectedExerciseName: '',    // Selected exercise name
+      selectedExerciseDescription: '', // Description of the selected exercise
       number_of_set: 1,
       selectedStatus: "Done",
       priority: 1,
       start_time: "",
       end_time: "",
-      message: "", // Store messages for user
+      message: "",    // Store messages for user
       messageType: "",
       records: [],
     };
@@ -130,8 +143,46 @@ export default {
     },
   },
   methods: {
+    async fetchExerciseTypes() {
+      try {
+        const response = await axios.get('http://127.0.0.1:3001/api/exercise/typelist');  // use typelist api to get each unique type
+        this.exerciseTypes = response.data;
+      } catch (error) {
+        console.error('Error fetching exercise types:', error);
+        this.message = "Error fetching exercise types.";
+        this.messageType = "error";
+      }
+    },
+    async onExerciseTypeChange() {
+      this.selectedExerciseId = '';             // Reset selected exercise ID
+      this.selectedExerciseName = '';           // Reset selected exercise name
+      this.selectedExerciseDescription = '';    // Reset description
+      if (this.selectedExerciseType) {
+        try {
+          const response = await axios.get('http://127.0.0.1:3001/api/exercise/type', {   // use type api to get details
+            params: { type: this.selectedExerciseType },
+          });
+          this.exercisesByType = response.data;
+        } catch (error) {
+          console.error('Error fetching exercises by type:', error);
+          this.message = "Error fetching exercises by type.";
+          this.messageType = "error";
+        }
+      } else {
+        this.exercisesByType = [];
+      }
+    },
+    onExerciseNameChange() {
+      const selectedExercise = this.exercisesByType.find(exercise => exercise.exercise_id === this.selectedExerciseId);
+      if (selectedExercise) {
+        this.selectedExerciseName = selectedExercise.name;
+        this.selectedExerciseDescription = selectedExercise.description || '';
+      } else {
+        this.selectedExerciseName = '';
+        this.selectedExerciseDescription = '';
+      }
+    },
     formatDateTime(date) {
-      // Format date into "YYYY-MM-DD HH:MM:SS"
       let year = date.getFullYear();
       let month = ('0' + (date.getMonth() + 1)).slice(-2);
       let day = ('0' + date.getDate()).slice(-2);
@@ -141,12 +192,18 @@ export default {
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     },
     submitRecord() {
+      if (!this.selectedExerciseId) {
+        this.message = "Please select an exercise.";
+        this.messageType = "error";
+        return;
+      }
+
       // Parse and format start and end times
       const start = new Date(this.start_time);
       const end = new Date(this.end_time);
       const total_time = Math.floor((end - start) / 1000);
 
-      const token = localStorage.getItem("token"); // Get token
+      const token = localStorage.getItem("token"); 
       if (!token) {
         console.error("Token missing, please login first.");
         this.message = "Token missing, please login first.";
@@ -158,8 +215,8 @@ export default {
       const formattedEndTime = this.formatDateTime(end);
 
       const recordData = {
-        exercise_id: this.exercise_id,
-        description: this.description,
+        exercise_id: this.selectedExerciseId,
+        description: this.selectedExerciseDescription,
         number_of_set: this.number_of_set,
         status: this.statusMapping[this.selectedStatus],
         priority: this.priority,
@@ -168,7 +225,7 @@ export default {
         total_time: total_time,
       };
 
-      fetch(`http://127.0.0.1:3001/api/record?token=${token}`, { // Corrected API URL
+      fetch(`http://127.0.0.1:3001/api/record?token=${token}`, {   // record api to post to backend
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -190,9 +247,9 @@ export default {
 
           // Add the new record to the records array
           this.records.unshift({
-            exercise_id: this.exercise_id,
-            exercise_name: this.exercise_name,
-            description: this.description,
+            exercise_id: this.selectedExerciseId,
+            exercise_name: this.selectedExerciseName,
+            description: this.selectedExerciseDescription,
             number_of_set: this.number_of_set,
             status: this.statusMapping[this.selectedStatus],
             priority: this.priority,
@@ -201,7 +258,7 @@ export default {
             total_time: total_time,
           });
 
-          this.resetForm(); // Reset form after submission
+          this.resetForm(); // reset after submission a record
         })
         .catch((error) => {
           console.error("Error submitting record:", error);
@@ -209,23 +266,33 @@ export default {
           this.messageType = "error";
         });
     },
-    resetForm() { // Reset form fields
-      this.exercise_id = 1;
-      this.exercise_name = "";
-      this.description = "";
+    resetForm() { // reset settings
+      this.selectedExerciseType = '';
+      this.exercisesByType = [];
+      this.selectedExerciseId = '';
+      this.selectedExerciseName = '';
+      this.selectedExerciseDescription = '';
       this.number_of_set = 1;
       this.selectedStatus = "Done";
       this.priority = 1;
       this.start_time = "";
       this.end_time = "";
     },
-
     goToCurrentRecords() {
       this.$router.push('/current-records');
     },
   },
+  watch: {
+    selectedExerciseId() {
+      this.onExerciseNameChange();
+    },
+  },
+  created() {
+    this.fetchExerciseTypes();
+  },
 };
 </script>
+
 
 
 

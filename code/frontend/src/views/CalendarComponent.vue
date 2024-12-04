@@ -15,23 +15,37 @@
           v-for="day in daysInMonth"
           :key="`day-${day}`"
           class="calendar-day"
-          :class="{ highlighted: highlightDates(day) }"
-          @click="highlightDates(day) && showRecords(day)"   
+          :class="getDayClass(day)"
+          @click="onDayClick(day)"
         >
           {{ day }}
         </div>
       </div>
     </div>
-    <div v-if="selectedRecords.length" class="modal-overlay" @click="selectedRecords = []">
+
+    <!-- show selected dataitems in records and plans -->
+    <div v-if="selectedRecords.length || selectedPlans.length" class="modal-overlay" @click="closeModal">
       <div class="modal-content" @click.stop>
-        <h3>Records for {{ selectedDate }}</h3>
-        <ul>
-          <li v-for="record in selectedRecords" :key="record.id">
-            <strong>{{ record.exercise_name }}</strong>
-            (Priority: {{ record.priority }}, Sets: {{ record.number_of_set }})
-          </li>
-        </ul>
-        <button @click="selectedRecords = []">Close</button>
+        <h3>Details for {{ selectedDate }}</h3>
+        <div v-if="selectedPlans.length">
+          <h4>Plans:</h4>
+          <ul>
+            <li v-for="plan in selectedPlans" :key="plan.plan_id">
+              <strong>{{ plan.title }}</strong>
+              (Priority: {{ plan.priority }}, Frequency: {{ plan.frequency_type }})
+            </li>
+          </ul>
+        </div>
+        <div v-if="selectedRecords.length">
+          <h4>Records:</h4>
+          <ul>
+            <li v-for="record in selectedRecords" :key="record.record_id">
+              <strong>{{ record.exercise_name }}</strong>
+              (Priority: {{ record.priority }}, Sets: {{ record.number_of_set }})
+            </li>
+          </ul>
+        </div>
+        <button @click="closeModal">Close</button>
       </div>
     </div>
   </div>
@@ -47,9 +61,11 @@ export default {
     return {
       currentMonth: new Date().getMonth(),
       currentYear: new Date().getFullYear(),
-      records: [],   // store records from backend db
-      selectedRecords: [],   // records for the selected date
+      records: [],           // Store records from backend
+      selectedRecords: [],   // Records for the selected date
       selectedDate: "",
+      plans: [],             // Store plans from backend
+      selectedPlans: [],     // Plans for the selected date
     };
   },
   computed: {
@@ -74,8 +90,7 @@ export default {
     recordsByDate() {
       const recordsByDate = {};
       this.records.forEach(record => {
-        const date = new Date(record.start_time);   // use start_time as highlight indicator
-        console.log("Record Date", date);
+        const date = new Date(record.start_time);
         if (
           date.getFullYear() === this.currentYear &&
           date.getMonth() === this.currentMonth
@@ -85,29 +100,63 @@ export default {
           recordsByDate[day].push(record);
         }
       });
-      console.log("Records by Date:", recordsByDate); // debug use
       return recordsByDate;
     },
+    plansByDate() {
+      const plansByDate = {};
+      for (const plan of this.plans) {
+        if (plan.custom_day) {
+          const date = new Date(plan.custom_day);
+          if (
+            date.getFullYear() === this.currentYear &&
+            date.getMonth() === this.currentMonth
+          ) {
+            const day = date.getDate();
+            if (!plansByDate[day]) plansByDate[day] = [];
+            plansByDate[day].push(plan);
+          }
+        }
+      }
+      return plansByDate;
+    },
   },
+
 
 
   methods: {
     async fetchRecords() {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://127.0.0.1:3001/api/record?token=${data.token}", {   // record api
-          params: { token },
+        const response = await axios.get("http://127.0.0.1:3001/api/record", {
+          params: { token: token },
         });
-        console.log("API Response:", response.data); // check api response on f12
         this.records = Array.isArray(response.data.rows) ? response.data.rows : [];
-        console.log("Fetched Records:", this.records); // also check record contents in console
       } catch (error) {
         console.error("Error fetching records:", error);
         this.records = [];
       }
     },
+    async fetchPlans() {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://127.0.0.1:3001/api/plan", {
+          params: { token: token },
+        });
+        console.log("api response is:", response.data);   // debug
 
-    // month switch function
+        if (Array.isArray(response.data.rows)) {
+          this.plans = response.data.rows; 
+        } else if (Array.isArray(response.data)) {
+          this.plans = response.data;
+        } else {
+          console.warn("Unexpected response structure:", response.data);
+          this.plans = [];
+        }
+      } catch (error) {
+        console.error("Error fetching plans:", error);
+        this.plans = [];
+      }
+    },
     prevMonth() {
       if (this.currentMonth === 0) {
         this.currentMonth = 11;
@@ -115,7 +164,6 @@ export default {
       } else {
         this.currentMonth--;
       }
-      this.fetchRecords();
     },
     nextMonth() {
       if (this.currentMonth === 11) {
@@ -124,26 +172,63 @@ export default {
       } else {
         this.currentMonth++;
       }
-      this.fetchRecords();
     },
-
-    
+    getDayClass(day) {
+      const { hasRecord, hasPlan } = this.highlightDates(day);
+      if (hasRecord && hasPlan) {
+        return 'has-both';
+      } else if (hasRecord) {
+        return 'has-record';
+      } else if (hasPlan) {
+        return 'has-plan';
+      } else {
+        return '';
+      }
+    },
     highlightDates(day) {
       const hasRecord = !!this.recordsByDate[day];
-      console.log(`Highlight for Day ${day}:`, hasRecord);  // check highlight availability
-      return hasRecord;
+      const hasPlan = !!this.plansByDate[day];
+      return { hasRecord, hasPlan };
     },
-    showRecords(day) {
-      this.selectedDate = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      this.selectedRecords = this.recordsByDate[day] || [];
+    onDayClick(day) {
+      const { hasRecord, hasPlan } = this.highlightDates(day);
+      if (hasRecord) {
+        this.selectedRecords = this.recordsByDate[day] || [];
+      } else {
+        this.selectedRecords = [];
+      }
+      if (hasPlan) {
+        this.selectedPlans = this.plansByDate[day] || [];
+      } else {
+        this.selectedPlans = [];
+      }
+
+      if (hasRecord || hasPlan) {
+        this.selectedDate = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      }
+    },
+    closeModal() {
+      this.selectedRecords = [];
+      this.selectedPlans = [];
+      this.selectedDate = "";
     },
   },
   created() {
     this.fetchRecords();
+    this.fetchPlans();
+  },
+
+
+  watch: {
+    currentMonth() {
+      // The computed properties will reactively update
+    },
+    currentYear() {
+      // The computed properties will reactively update
+    },
   },
 };
 </script>
-
 
 
 
@@ -219,4 +304,15 @@ export default {
   width: 300px;
   text-align: center;
 }
+
+.calendar-day.has-record {
+  background-color: #ffeb3b; /* yellow for record day */
+}
+.calendar-day.has-plan {
+  background-color: #add8e6; /* blue for plan day */
+}
+.calendar-day.has-both {
+  background-color: #e61f18; /* red for record + plan day  */
+}
+
 </style>
