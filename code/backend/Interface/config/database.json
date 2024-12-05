@@ -15,7 +15,8 @@
     ],
     "tables": [
         [
-            "CREATE TABLE IF NOT EXISTS user_account (user_id INT AUTO_INCREMENT UNIQUE, user_email VARCHAR(255) PRIMARY KEY, user_name VARCHAR(255) UNIQUE NOT NULL, user_password VARCHAR(255) NOT NULL, user_group_id INT, user_role INT)"
+            "CREATE TABLE IF NOT EXISTS user_account (user_id INT AUTO_INCREMENT UNIQUE, user_email VARCHAR(255) PRIMARY KEY, user_name VARCHAR(255) UNIQUE NOT NULL, user_password VARCHAR(255) NOT NULL, user_group_id INT, user_role INT)",
+            "INSERT IGNORE INTO user_account (user_email, user_name, user_password, user_group_id, user_role) VALUES ('admin@bu.edu', 'admin', 'admin', 0, 2)"
         ],
         [
             "CREATE TABLE IF NOT EXISTS user_profile (user_id INT UNIQUE NOT NULL,First_name VARCHAR(100),Last_name VARCHAR(100),avatar_url VARCHAR(255),introduction TEXT,height DECIMAL(5,2),weight DECIMAL(5,2),fitness_level TINYINT,fitness_goals TEXT,birthday TIMESTAMP,training_start_date TIMESTAMP,phone VARCHAR(10),Email VARCHAR(255),country VARCHAR(100),city VARCHAR(100),state VARCHAR(100),PRIMARY KEY (user_id))",
