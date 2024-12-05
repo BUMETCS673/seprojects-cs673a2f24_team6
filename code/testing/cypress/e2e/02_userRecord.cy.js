@@ -167,7 +167,6 @@ describe('template spec', () => {
       }, 
     }).then((response) => {
       expect(response.status).to.eq(200);
-      console.log(response.body)
       expect(response.body).to.have.property('message', 'Record deleted successfully');
     });
   });
