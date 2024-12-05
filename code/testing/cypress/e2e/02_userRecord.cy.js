@@ -103,11 +103,11 @@ describe('template spec', () => {
       },
       headers: {
         'Content-Type': 'application/json',
+        'x-user-id': token
       },
     }).then((response) => {
       expect(response.status).to.eq(200);
-      expect(response.body).to.have.property('rows');
-      record = response.body.rows.insertId;
+      expect(response.body).to.have.property('message', 'Record upload successfully');
     });
   });
 
@@ -124,6 +124,7 @@ describe('template spec', () => {
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('rows');
+      record = response.body.rows[0].record_id;
       expect(response.body.rows.length).to.greaterThan(0);
     });
   });
@@ -133,7 +134,6 @@ describe('template spec', () => {
       method: 'PUT',
       url: `/api/record`, 
       body: {
-        token: token,
         record_id: record,
         exercise_name: "Testing modify",
         description: "Upper body strength exercise",
@@ -145,12 +145,12 @@ describe('template spec', () => {
         total_time: 30
       },
       headers: {
+        'x-user-id':token,
         'Content-Type': 'application/json',
       },
     }).then((response) => {
       expect(response.status).to.eq(200);
-      expect(response.body).to.have.property('rows');
-      expect(response.body.rows.affectedRows).to.eq(1);
+      expect(response.body).to.have.property('message', 'Record updated successfully');
     });
   });
 
@@ -159,16 +159,16 @@ describe('template spec', () => {
       method: 'DELETE',
       url: `/api/record`,
       qs: {
-        token: token,
         record_id: record
       },
       headers: {
+        'x-user-id':token,
         'Content-Type': 'application/json',
       }, 
     }).then((response) => {
       expect(response.status).to.eq(200);
-      expect(response.body).to.have.property('rows');
-      expect(response.body.rows.affectedRows).to.eq(1);
+      console.log(response.body)
+      expect(response.body).to.have.property('message', 'Record deleted successfully');
     });
   });
 
