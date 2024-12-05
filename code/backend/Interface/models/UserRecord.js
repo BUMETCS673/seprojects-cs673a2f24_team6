@@ -27,7 +27,7 @@ createRecord = (user_id, recordData) => {
               if(result.rows.affectedRows == 0){
                 return {"err":"Record upload fail"};
               }
-              return {"massage":"Record upload successfully"};
+              return {"message":"Record upload successfully"};
             },(err) => {
               console.log(err);
               if(err.errno == 1452){
@@ -46,7 +46,7 @@ deleteRecord = (user_id, record_id) => {
               if(result.rows.affectedRows == 0){
                 return {"err":"Record delete fail"};
               }
-              return {"massage":"Record delete successfully"};
+              return {"message":"Record deleted successfully"};
             },(err) => {
               console.log(err);
               return {"err":"some error happen"};
@@ -80,7 +80,7 @@ updateRecord = (user_id, recordData) => {
               if(result.rows.affectedRows == 0){
                 return {"err":"Record updated fail"};
               }
-              return {"massage":"Record updated successfully"};
+              return {"message":"Record updated successfully"};
             },(err) => {
               console.log(err);
               if(err.errno == 1452){
