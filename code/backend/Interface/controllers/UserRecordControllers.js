@@ -1,17 +1,16 @@
 const UserRecord = require('../models/UserRecord');
 
 createRecord = (req, res) => {
-  if(!req.body.token){
-    res.status(400).json({err:"missing token"});
-  }
-  // TODO: check the token status and get user_id
-  const user_id = req.body.token;
+  const user_id = req.user.id;
   
   // TODO: check each params type and value
 
 
   UserRecord.createRecord(user_id,req.body)
   .then((result)=>{
+    if (result.err){
+      return res.status(400).json(result);
+    } 
     res.status(200).json(result);
   },(err)=>{
     res.status(400).json(err);
@@ -20,18 +19,17 @@ createRecord = (req, res) => {
 }
 
 deleteRecord = (req, res) => {
-  if(!req.query.token){
-    res.status(400).json({err:"missing token"});
-  }
 
-  // TODO: check the token status and get user_id
-  const user_id = req.query.token;
+  const user_id = req.user.id;
 
   // TODO: check the record data type
   const record_id = req.query.record_id;
 
   UserRecord.deleteRecord(user_id, record_id)
   .then((result)=>{
+    if (result.err){
+      return res.status(400).json(result);
+    } 
     res.status(200).json(result);
   },(err)=>{
     res.status(400).json(err);
@@ -40,17 +38,16 @@ deleteRecord = (req, res) => {
 }
 
 updateRecord = (req, res) => {
-  if(!req.body.token){
-    res.status(400).json({err:"missing token"});
-  }
 
-  // TODO: check the token status and get user_id
-  const user_id = req.body.token;
+  const user_id = req.user.id;
 
   // TODO: check each params type and value
 
   UserRecord.updateRecord(user_id,req.body)
   .then((result)=>{
+    if (result.err){
+      return res.status(400).json(result);
+    } 
     res.status(200).json(result);
   },(err)=>{
     res.status(400).json(err);
@@ -59,15 +56,14 @@ updateRecord = (req, res) => {
 }
 
 searchRecord = (req, res) => {
-  if(!req.query.token){
-    res.status(400).json({err:"missing token"});
-  }
 
-  // TODO: check the token status and get user_id
-  const user_id = req.query.token;
+  const user_id = req.user.id;
 
   UserRecord.searchRecord(user_id)
   .then((result)=>{
+    if (result.err){
+      return res.status(400).json(result);
+    } 
     res.status(200).json(result);
   },(err)=>{
     res.status(400).json(err);

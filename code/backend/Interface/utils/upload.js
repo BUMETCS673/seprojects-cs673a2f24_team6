@@ -6,9 +6,7 @@ const fs = require('fs');
 // Define allowed file types
 const ALLOWED_FILE_TYPES = {
     'image/jpeg': 'jpg',
-    'image/jpg': 'jpg',
-    'image/png': 'png',
-    'image/gif': 'gif'
+    'image/jpg': 'jpg'
 };
 
 // Maximum file size (5MB)
@@ -16,7 +14,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 // Create base uploads directory
 const createUploadDir = (type) => {
-    const uploadDir = path.join(__dirname, `../public/uploads/${type}`);
+    const uploadDir = path.join(__dirname, `../public/${type}`);
     if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -34,7 +32,7 @@ configureStorage = (type) => {
             const userId = req.user.id;
             const timestamp = Date.now();
             const ext = ALLOWED_FILE_TYPES[file.mimetype];
-            cb(null, `${type}_${userId}_${timestamp}.${ext}`);
+            cb(null, `${userId}.${ext}`);
         }
     });
 };
@@ -44,7 +42,7 @@ fileFilter = (req, file, cb) => {
     if (ALLOWED_FILE_TYPES[file.mimetype]) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only JPG, PNG and GIF files are allowed.'), false);
+        cb(new Error('Invalid file type. Only JPG file are allowed.'), false);
     }
 };
 

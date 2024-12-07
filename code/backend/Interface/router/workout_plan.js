@@ -12,22 +12,10 @@ router.post('/', PlanController.createPlan);
 // Get all workout plans for the authenticated user
 router.get('/', PlanController.getUserPlans);
 
-// Get active workout plans
-router.get('/active', PlanController.getActivePlans);
-
-// Get plans by frequency type
-router.get('/frequency/:frequency_type', PlanController.getPlansByFrequency);
-
-// Get a specific workout plan
-router.get('/:id', PlanController.getPlan);
-
 // Update a workout plan
-router.put('/:id', PlanController.updatePlan);
-
-// Update workout plan status
-router.patch('/:id/status', PlanController.updatePlanStatus);
+router.put('/', PlanController.updatePlan);
 
 // Delete a workout plan
-router.delete('/:id', PlanController.deletePlan);
+router.delete('/', PlanController.deletePlan);
 
 module.exports = router;

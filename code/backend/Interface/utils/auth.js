@@ -37,7 +37,7 @@ const MAX_SESSION_TIME = 60 * 60 * 1000; // session expire time in milliseconds 
 // };
 
 module.exports = (req, res, next) => {
-    const userId = req.query.userID || req.headers['x-user-id'];
+    const userId = req.query.token || req.headers['x-user-id'];
     
     if (!userId) {
         return res.status(400).json({ err: "userID is required" });

@@ -15,22 +15,23 @@
     ],
     "tables": [
         [
-            "CREATE TABLE user_account (user_id INT AUTO_INCREMENT UNIQUE, user_email VARCHAR(255) PRIMARY KEY, user_name VARCHAR(255) UNIQUE NOT NULL, user_password VARCHAR(255) NOT NULL, user_group_id INT, user_role INT)"
+            "CREATE TABLE IF NOT EXISTS user_account (user_id INT AUTO_INCREMENT UNIQUE, user_email VARCHAR(255) PRIMARY KEY, user_name VARCHAR(255) UNIQUE NOT NULL, user_password VARCHAR(255) NOT NULL, user_group_id INT, user_role INT)",
+            "INSERT IGNORE INTO user_account (user_email, user_name, user_password, user_group_id, user_role) VALUES ('admin@bu.edu', 'admin', 'admin', 0, 2)"
         ],
         [
-            "CREATE TABLE user_profile (user_id INT UNIQUE NOT NULL,First_name VARCHAR(100),Last_name VARCHAR(100),avatar_url VARCHAR(255),introduction TEXT,height DECIMAL(5,2),weight DECIMAL(5,2),fitness_level TINYINT,fitness_goals TEXT,birthday TIMESTAMP,training_start_date TIMESTAMP,phone VARCHAR(10),Email VARCHAR(255),country VARCHAR(100),city VARCHAR(100),state VARCHAR(100),PRIMARY KEY (user_id))",
+            "CREATE TABLE IF NOT EXISTS user_profile (user_id INT UNIQUE NOT NULL,First_name VARCHAR(100),Last_name VARCHAR(100),avatar_url VARCHAR(255),introduction TEXT,height DECIMAL(5,2),weight DECIMAL(5,2),fitness_level TINYINT,fitness_goals TEXT,birthday TIMESTAMP,training_start_date TIMESTAMP,phone VARCHAR(10),Email VARCHAR(255),country VARCHAR(100),city VARCHAR(100),state VARCHAR(100),PRIMARY KEY (user_id))",
             "ALTER TABLE user_profile ADD CONSTRAINT fk_user_id_profile FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE"
         ],
         [
-            "CREATE TABLE exercises (exercise_id INT AUTO_INCREMENT, name VARCHAR(255) NOT NULL, description TEXT, equipment VARCHAR(255), type VARCHAR(50), reps INT, sets INT, duration INT, user_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (exercise_id))",
-            "ALTER TABLE exercises ADD CONSTRAINT fk_user_id_e FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE SET NULL"
+            "CREATE TABLE IF NOT EXISTS exercises (exercise_id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, description TEXT, equipment VARCHAR(255), type VARCHAR(255), url VARCHAR(255));"
         ],
         [
-            "CREATE TABLE workout_log (record_id INT AUTO_INCREMENT UNIQUE,user_id INT,exercise_name VARCHAR(255),description VARCHAR(255),number_of_set INT,status VARCHAR(10),priority INT,start_time TIMESTAMP,end_time TIMESTAMP,total_time INT,PRIMARY KEY (record_id))",
-            "ALTER TABLE workout_log ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES user_account(user_id)"
+            "CREATE TABLE IF NOT EXISTS workout_log (record_id INT AUTO_INCREMENT UNIQUE, user_id INT, exercise_id INT, description VARCHAR(255), number_of_set INT, status VARCHAR(10), priority INT, start_time TIMESTAMP, end_time TIMESTAMP, total_time INT, PRIMARY KEY (record_id))",
+            "ALTER TABLE workout_log ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES user_account(user_id)",
+            "ALTER TABLE workout_log ADD CONSTRAINT fk_exercise_id FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id)"
         ],
         [
-            "CREATE TABLE workout_plan (plan_id INT AUTO_INCREMENT, user_id INT NOT NULL, exercise_id INT NOT NULL, name VARCHAR(255) NOT NULL, description TEXT, start_date DATE NOT NULL, end_date DATE, target_sets INT, target_reps INT, target_duration INT, frequency_type ENUM('daily', 'weekly', 'monthly', 'custom') NOT NULL, frequency_value INT NOT NULL, days_of_week SET('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'), preferred_time TIME, priority INT CHECK (priority BETWEEN 0 AND 10), status ENUM('active', 'paused', 'completed', 'cancelled') DEFAULT 'active', reminder_enabled BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (plan_id))",
+            "CREATE TABLE IF NOT EXISTS workout_plan (plan_id INT AUTO_INCREMENT, user_id INT NOT NULL, exercise_id INT, title VARCHAR(255), description TEXT, frequency_type ENUM('daily', 'weekly', 'monthly', 'custom') NOT NULL, days_of_month INT CHECK (days_of_month BETWEEN 1 AND 31), days_of_week SET('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'), custom_day TIMESTAMP, time_of_day TIME, priority INT CHECK (priority BETWEEN 0 AND 10), status BOOLEAN NOT NULL, reminder_enabled BOOLEAN DEFAULT false, PRIMARY KEY (plan_id))",
             "ALTER TABLE workout_plan ADD CONSTRAINT fk_user_id_p FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE",
             "ALTER TABLE workout_plan ADD CONSTRAINT fk_exercise_id_p FOREIGN KEY (exercise_id) REFERENCES exercises(exercise_id) ON DELETE RESTRICT"
         ]

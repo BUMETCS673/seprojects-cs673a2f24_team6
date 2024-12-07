@@ -49,16 +49,24 @@ checkCredentials = (identifier, password, type) => {
 }
 
 // update password
-updatePassword = (userId, newPassword) => {
+updatePassword = (userId, oldPassword, newPassword) => {
   // TODO: Implement bcrypt when ready
-  const hashPassword = newPassword;
+  const hashNewPassword = newPassword;
+  const hashOldPassword = oldPassword;
   
-  const sql = 'UPDATE user_account SET user_password = ? WHERE user_id = ?';
-  return SQL.runsql(sql, [hashPassword, userId])
-      .then(
-          (result) => result.rows,
-          (err) => err
-      );
+  const sql = 'UPDATE user_account SET user_password = ? WHERE user_id = ? AND user_password = ?';
+  const values = [hashNewPassword, userId, hashOldPassword];
+
+
+  return SQL.runsql(sql, values)
+            .then((result) => {
+
+              if(result.rows.affectedRows == 0){
+                return {"err":"current password error, update fail"};
+              }
+
+              return {"massage":"Password updated successfully"};
+            },(err) => err);
 };
 // 
 

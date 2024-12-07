@@ -3,148 +3,135 @@ const SQL = require('../utils/SQL')
 
 create = (planData) => {
     const sql = `INSERT INTO workout_plan 
-        (user_id, exercise_id, name, description, start_date, end_date, 
-        target_sets, target_reps, target_duration, frequency_type, 
-        frequency_value, days_of_week, preferred_time, priority, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (user_id, exercise_id, title, description, frequency_type, days_of_month, 
+        days_of_week, custom_day, time_of_day, priority, status, reminder_enabled) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const values = [
         planData.user_id,
         planData.exercise_id,
-        planData.name,
+        planData.title, 
         planData.description,
-        planData.start_date,
-        planData.end_date,
-        planData.target_sets,
-        planData.target_reps,
-        planData.target_duration,
         planData.frequency_type,
-        planData.frequency_value,
+        planData.days_of_month,
         planData.days_of_week,
-        planData.preferred_time,
+        planData.custom_day,
+        planData.time_of_day,
         planData.priority,
-        planData.status || 'active'
+        planData.status,
+        planData.reminder_enabled
     ];
 
-    return SQL.runsql(sql, values);
+    return SQL.runsql(sql, values)
+            .then((result)=>{
+                if(result.rows.affectedRows == 0){
+                    return {"err":"Plan upload fail"};
+                }
+                return {"massage":"Plan upload successfully"};
+            },(err) => {
+                console.log(err);
+                if(err.errno == 1452){
+                    return {"err":"No such execise id"};
+                }
+                return {"err":"some error happen"};
+            });
 };
 
-findPlanById = (planId) => {
-    const sql = `
-        SELECT p.*, e.name as exercise_name, e.type as exercise_type
-        FROM workout_plan p
-        JOIN exercises e ON p.exercise_id = e.exercise_id
-        WHERE p.plan_id = ?`;
-    
-    return SQL.runsql(sql, [planId])
-        .then(
-            (result) => result.rows[0],
-            (err) => err
-        );
-};
 
 findPlansByUserId = (userId) => {
     const sql = `
-        SELECT p.*, e.name as exercise_name, e.type as exercise_type
-        FROM workout_plan p
-        JOIN exercises e ON p.exercise_id = e.exercise_id
-        WHERE p.user_id = ?
-        ORDER BY p.status = 'active' DESC, p.priority DESC, p.start_date ASC`;
+        SELECT 
+            plan_id, 
+            exercise_id, 
+            title, 
+            description, 
+            frequency_type, 
+            days_of_month, 
+            days_of_week, 
+            custom_day, 
+            time_of_day, 
+            priority, 
+            status, 
+            reminder_enabled 
+        FROM workout_plan
+        WHERE user_id = ?`;
     
     return SQL.runsql(sql, [userId])
         .then(
-            (result) => result.rows,
-            (err) => err
+            (result) => result,
+            (err) => {
+                console.log(err);
+                return {"err":"some error happen"};
+              }
         );
 };
 
-update = (planId, updateData) => {
+update = (userId, updateData) => {
     const sql = `UPDATE workout_plan SET 
         exercise_id = ?,
-        name = ?,
+        title = ?,
         description = ?,
-        start_date = ?,
-        end_date = ?,
-        target_sets = ?,
-        target_reps = ?,
-        target_duration = ?,
         frequency_type = ?,
-        frequency_value = ?,
+        days_of_month = ?,
         days_of_week = ?,
-        preferred_time = ?,
-        priority = ?
-        WHERE plan_id = ?`;
+        custom_day = ?,
+        time_of_day = ?,
+        priority = ?,
+        status = ?,
+        reminder_enabled = ?
+        WHERE plan_id = ? AND user_id = ?`;
 
     const values = [
         updateData.exercise_id,
-        updateData.name,
+        updateData.title,
         updateData.description,
-        updateData.start_date,
-        updateData.end_date,
-        updateData.target_sets,
-        updateData.target_reps,
-        updateData.target_duration,
         updateData.frequency_type,
-        updateData.frequency_value,
+        updateData.days_of_month,
         updateData.days_of_week,
-        updateData.preferred_time,
+        updateData.custom_day,
+        updateData.time_of_day,
         updateData.priority,
-        planId
+        updateData.status,
+        updateData.reminder_enabled,
+        updateData.plan_id,
+        userId
     ];
 
-    return SQL.runsql(sql, values);
+    return SQL.runsql(sql, values)
+            .then((result)=>{
+                if(result.rows.affectedRows == 0){
+                    return {"err":"Plan updated fail"};
+                }
+                return {"massage":"Plan updated successfully"};
+            },(err) => {
+                console.log(err);
+                if(err.errno == 1452){
+                    return {"err":"No such execise id"};
+                }
+                return {"err":"some error happen"};
+            });
 };
 
-updateStatus = (planId, status) => {
-    const sql = 'UPDATE workout_plan SET status = ? WHERE plan_id = ?';
-    return SQL.runsql(sql, [status, planId]);
+
+remove = (planId, userId) => {
+    const sql = 'DELETE FROM workout_plan WHERE plan_id = ? AND user_id = ?';
+    const values = [planId, userId]
+    return SQL.runsql(sql, values)
+        .then((result)=>{
+        if(result.rows.affectedRows == 0){
+            return {"err":"Plan delete fail"};
+        }
+        return {"massage":"Plan delete successfully"};
+        },(err) => {
+        console.log(err);
+        return {"err":"some error happen"};
+        });
 };
 
-remove = (planId) => {
-    const sql = 'DELETE FROM workout_plan WHERE plan_id = ?';
-    return SQL.runsql(sql, [planId]);
-};
-
-findActivePlans = (userId, date) => {
-    const sql = `
-        SELECT p.*, e.name as exercise_name, e.type as exercise_type
-        FROM workout_plan p
-        JOIN exercises e ON p.exercise_id = e.exercise_id
-        WHERE p.user_id = ?
-        AND p.status = 'active'
-        AND p.start_date <= ?
-        AND (p.end_date IS NULL OR p.end_date >= ?)
-        ORDER BY p.priority DESC`;
-    
-    return SQL.runsql(sql, [userId, date, date])
-        .then(
-            (result) => result.rows,
-            (err) => err
-        );
-};
-
-findPlansByFrequency = (userId, frequencyType) => {
-    const sql = `
-        SELECT p.*, e.name as exercise_name, e.type as exercise_type
-        FROM workout_plan p
-        JOIN exercises e ON p.exercise_id = e.exercise_id
-        WHERE p.user_id = ? AND p.frequency_type = ? AND p.status = 'active'
-        ORDER BY p.priority DESC`;
-    
-    return SQL.runsql(sql, [userId, frequencyType])
-        .then(
-            (result) => result.rows,
-            (err) => err
-        );
-};
 
 module.exports = {
     create,
-    findPlanById,
     findPlansByUserId,
     update,
-    updateStatus,
-    delete: remove,
-    findActivePlans,
-    findPlansByFrequency
+    delete: remove
 };
