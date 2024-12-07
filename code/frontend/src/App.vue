@@ -17,7 +17,7 @@
     </main>
 
     <footer>
-      <p>&copy; 2024 Fitness Plan Builder. All rights reserved.</p>
+      <p>&copy; Team6 Fitness Plan Builder. All rights reserved.</p>
     </footer>
   </div>
 </template>

@@ -8,6 +8,9 @@ import ExercisePushUp from '../views/ExercisePushUp.vue';
 import RegistrationPage from '../views/RegistrationPage.vue'; 
 import UserProfile from '../views/UserProfile.vue';
 import ProfileCard from '../views/ProfileCard.vue';
+import CalendarComponent from '../views/CalendarComponent.vue';
+import CurrentPlans from '../views/CurrentPlans.vue';
+import CurrentRecords from '../views/CurrentRecords.vue';
 
 const isAuthenticated = () => {
   return localStorage.getItem('loggedIn') === 'true'; 
@@ -56,6 +59,9 @@ const routes = [
   { path: '/exercise/push-up', name: 'PushUp', component: ExercisePushUp},
   { path: '/register', name: 'Register', component: RegistrationPage },
   { path: '/userprofile', name: 'UserProfile', component: UserProfile}, 
+  { path: '/calendar', name: 'Calendar', component: CalendarComponent}, 
+  { path: '/current-plans', name: 'CurrentPlans', component: CurrentPlans},
+  { path: '/current-records', name: 'CurrentRecords', component: CurrentRecords},
   { path: '/profile-card', name: 'ProfileCard', component: ProfileCard, beforeEnter: (to, from, next) => {
     if (!isAuthenticated()) {
       next('/');
@@ -64,6 +70,7 @@ const routes = [
     }
   }
 }
+
 
 
 
