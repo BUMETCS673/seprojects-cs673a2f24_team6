@@ -31,3 +31,10 @@ This README file is a living document and will be continuously updated  througho
 ## JIRA
 Here's the link to our JIRA
 https://cs673a2f24team6.atlassian.net/jira/software/projects/FITFUSION/boards/1
+
+
+## Screen shots
+![Alt text](/misc/Screenshots/login.png "Login")
+![Alt text](/misc/Screenshots/FrontPage.jpg "User Page")
+![Alt text](/misc/Screenshots/Profile.jpg "Profile")
+![Alt text](/misc/Screenshots/exercises.png "Exercises")
