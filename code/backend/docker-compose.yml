@@ -1,0 +1,28 @@
+version: '1'
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3000:3306"
+    networks:
+      - inner-network
+
+  backend:
+    image: backend
+    build:
+      context: .
+    container_name: backend
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - inner-network
+
+networks:
+  inner-network:
+    driver: bridge
